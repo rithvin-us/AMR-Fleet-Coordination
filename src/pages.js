@@ -354,10 +354,10 @@ export const dashboard = {
 
       <!-- CENTER COLUMN: MAIN WEBGL 3D DIGITAL TWIN VIEWPORT -->
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="card" style="padding:0;overflow:hidden;position:relative;background:#040d1a;border:1px solid rgba(0,242,255,0.25);box-shadow:0 8px 30px rgba(0,0,0,0.6)">
-          <div class="card-header" style="padding:10px 14px;background:rgba(15,23,42,0.95);border-bottom:1px solid rgba(255,255,255,0.08)">
-            <div class="card-title" style="font-size:12px;color:#00f2ff;font-family:var(--font-display);letter-spacing:0.8px">
-              <i class="fas fa-cube" style="color:#00f2ff"></i> GLOBAL LOGISTICS HUB - ZONE 4
+        <div class="card" style="padding:0;overflow:hidden;position:relative;background:#ffffff;border:1px solid #d0d7de;box-shadow:0 1px 3px rgba(31,35,40,0.12)">
+          <div class="card-header" style="padding:10px 14px;background:#f6f8fa;border-bottom:1px solid #d0d7de">
+            <div class="card-title" style="font-size:12px;color:#0969da;font-family:var(--font-display);letter-spacing:0.8px">
+              <i class="fas fa-cube" style="color:#0969da"></i> GLOBAL LOGISTICS HUB - ZONE 4
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <div class="speed-group" id="viewModeGroup">
@@ -365,8 +365,8 @@ export const dashboard = {
                 <button class="active" id="btnMode3D"><i class="fas fa-cube" style="color:var(--accent)"></i> 3D Digital Twin</button>
                 <button id="btnOpenCustomizer"><i class="fas fa-sliders" style="color:var(--warning)"></i> Customize Map</button>
               </div>
-              <button class="btn btn-sm btn-icon" id="btnFullscreen3DHeader" style="color:#94a3b8"><i class="fas fa-expand"></i></button>
-              <button class="btn btn-sm btn-icon" style="color:#94a3b8"><i class="fas fa-gear"></i></button>
+              <button class="btn btn-sm btn-icon" id="btnFullscreen3DHeader" style="color:#57606a"><i class="fas fa-expand"></i></button>
+              <button class="btn btn-sm btn-icon" style="color:#57606a"><i class="fas fa-gear"></i></button>
             </div>
           </div>
 
@@ -377,10 +377,10 @@ export const dashboard = {
             </div>
 
             <!-- 3D WebGL Digital Twin View Container -->
-            <div id="threeCanvasContainer" style="display:block;height:540px;">
+            <div id="threeCanvasContainer" style="display:block;height:540px;background:#f1f5f9;">
               <div class="scada-hud-overlay">
                 <div class="scada-hud-card">
-                  <i class="fas fa-microchip" style="color:#00f2ff;margin-right:4px"></i> <b>WEBGL 3D DIGITAL TWIN</b> | <span id="hud3DStats">60 FPS · Industrial SCADA Twin</span>
+                  <i class="fas fa-microchip" style="color:#0969da;margin-right:4px"></i> <b>WEBGL 3D DIGITAL TWIN</b> | <span id="hud3DStats">60 FPS · Industrial SCADA Twin</span>
                 </div>
                 <div class="scada-preset-bar" id="cameraPresetBar">
                   <button class="active" data-preset="3d"><i class="fas fa-camera"></i> Isometric</button>
