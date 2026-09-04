@@ -25,8 +25,8 @@ export class ThreeWarehouseMap {
 
     // Scene & Renderer Setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x070f1e);
-    this.scene.fog = new THREE.FogExp2(0x070f1e, 0.0028);
+    this.scene.background = new THREE.Color(0xf1f5f9);
+    this.scene.fog = new THREE.FogExp2(0xf1f5f9, 0.002);
 
     this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 1, 1000);
     this.camera.position.set(0, 110, 115);
@@ -104,10 +104,10 @@ export class ThreeWarehouseMap {
   }
 
   initLighting() {
-    const ambient = new THREE.AmbientLight(0x1e293b, 2.2);
+    const ambient = new THREE.AmbientLight(0xffffff, 2.5);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0x00f2ff, 1.5);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
     dirLight.position.set(60, 130, 70);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -120,22 +120,22 @@ export class ThreeWarehouseMap {
     dirLight.shadow.camera.bottom = -80;
     this.scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x3b82f6, 0.8);
+    const fillLight = new THREE.DirectionalLight(0x0969da, 0.6);
     fillLight.position.set(-80, 60, -70);
     this.scene.add(fillLight);
 
-    const centerPoint = new THREE.PointLight(0x00f2ff, 1.2, 160);
+    const centerPoint = new THREE.PointLight(0x0969da, 1.0, 160);
     centerPoint.position.set(0, 25, 0);
     this.scene.add(centerPoint);
   }
 
   buildFloor() {
-    // Large Cyber metallic floor plane (240x180)
+    // Large Light Epoxy floor plane (240x180)
     const floorGeo = new THREE.PlaneGeometry(240, 180);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x0a1628,
-      roughness: 0.2,
-      metalness: 0.85,
+      color: 0xdedee5,
+      roughness: 0.15,
+      metalness: 0.1,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -145,22 +145,22 @@ export class ThreeWarehouseMap {
 
     // Outdoor Asphalt Loading Apron Ground
     const asphaltGeo = new THREE.PlaneGeometry(240, 60);
-    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x020814, roughness: 0.9, metalness: 0.1 });
+    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8, metalness: 0.1 });
     const apron = new THREE.Mesh(asphaltGeo, asphaltMat);
     apron.rotation.x = -Math.PI / 2;
     apron.position.set(0, -0.12, 90);
     this.floorGroup.add(apron);
 
-    // Glowing Cyber Grid Overlay
-    const gridHelper = new THREE.GridHelper(240, 48, 0x00f2ff, 0x1e293b);
+    // Grid Overlay
+    const gridHelper = new THREE.GridHelper(240, 48, 0x0969da, 0xcbcfd5);
     gridHelper.position.y = 0.01;
-    gridHelper.material.opacity = 0.3;
+    gridHelper.material.opacity = 0.45;
     gridHelper.material.transparent = true;
     this.floorGroup.add(gridHelper);
 
     // Outer Facility Perimeter Line
     const frameGeo = new THREE.BoxGeometry(166, 1.4, 106);
-    const frameMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true });
+    const frameMat = new THREE.MeshBasicMaterial({ color: 0x0969da, wireframe: true });
     const frame = new THREE.Mesh(frameGeo, frameMat);
     frame.position.set(0, 0.7, 0);
     this.floorGroup.add(frame);
@@ -172,8 +172,8 @@ export class ThreeWarehouseMap {
   buildWarehouseBuildingEnclosure() {
     this.buildingGroup.clear();
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
-    const trimMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.2, roughness: 0.6 });
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x0969da });
 
     // Rear Facility Wall (Back Z = -53)
     const rearWallGeo = new THREE.BoxGeometry(168, 18, 1.5);

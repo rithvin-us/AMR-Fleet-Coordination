@@ -1017,11 +1017,11 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   width: 100%;
   height: 72vh;
   min-height: 580px;
-  background: #040d1a;
+  background: #f1f5f9;
   border-radius: var(--radius);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 35px rgba(0, 242, 255, 0.15);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1053,31 +1053,32 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 .scada-hud-card {
-  background: rgba(4, 13, 26, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 242, 255, 0.35);
+  border: 1px solid #d0d7de;
   border-radius: var(--radius-sm);
   padding: 8px 14px;
-  color: #00f2ff;
+  color: #0969da;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   pointer-events: auto;
 }
 
 .scada-hud-card b {
-  color: #ffffff;
+  color: #1f2328;
 }
 
 .scada-preset-bar {
   display: flex;
   gap: 6px;
-  background: rgba(4, 13, 26, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   padding: 4px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 242, 255, 0.35);
+  border: 1px solid #d0d7de;
   pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .scada-preset-bar button {
@@ -1085,14 +1086,14 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #57606a;
   transition: all 0.2s ease;
 }
 
 .scada-preset-bar button.active, .scada-preset-bar button:hover {
-  background: rgba(0, 242, 255, 0.25);
-  color: #00f2ff;
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  background: #0969da;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(9, 105, 218, 0.3);
 }
 
 /* Circular SCADA SVG Ring Gauges */
@@ -1317,16 +1318,16 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 .vbadge-content {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(0, 242, 255, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #cbd5e1;
   backdrop-filter: blur(8px);
   border-radius: 5px;
   padding: 4px 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
-  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  color: #1f2328;
   font-family: var(--font-mono);
   font-size: 10px;
 }
@@ -1336,19 +1337,19 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   letter-spacing: 0.5px;
 }
 
-.vbadge-amr { border-color: rgba(16, 185, 129, 0.6); }
+.vbadge-amr { border-color: rgba(16, 185, 129, 0.8); }
 .vbadge-amr .vbadge-name { color: #10b981; }
 
-.vbadge-agv { border-color: rgba(2, 132, 199, 0.6); }
-.vbadge-agv .vbadge-name { color: #38bdf8; }
+.vbadge-agv { border-color: rgba(9, 105, 218, 0.8); }
+.vbadge-agv .vbadge-name { color: #0969da; }
 
-.vbadge-fl { border-color: rgba(245, 158, 11, 0.6); }
-.vbadge-fl .vbadge-name { color: #fbbf24; }
+.vbadge-fl { border-color: rgba(217, 119, 6, 0.8); }
+.vbadge-fl .vbadge-name { color: #d97706; }
 
 .vbadge-sub {
   font-size: 8.5px;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.08);
+  color: #57606a;
+  background: rgba(0, 0, 0, 0.06);
   padding: 1px 5px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -1363,13 +1364,13 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 242, 255, 0.3);
+  border: 1px solid #d0d7de;
   border-radius: 6px;
   padding: 6px 12px;
   z-index: 50;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
 }
 
@@ -1379,9 +1380,9 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   gap: 6px;
   padding: 6px 12px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  color: #1f2328;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -1389,9 +1390,9 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 .scada-control-btn:hover {
-  background: rgba(0, 242, 255, 0.2);
-  border-color: #00f2ff;
-  color: #00f2ff;
+  background: #f3f4f6;
+  border-color: #0969da;
+  color: #0969da;
 }
 
 .scada-top-title {
