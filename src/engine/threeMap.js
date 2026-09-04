@@ -387,7 +387,11 @@ export class ThreeWarehouseMap {
   createForklift3DMesh(amr) {
     const group = new THREE.Group();
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf97316, metalness: 0.7, roughness: 0.3 }); // Orange
+    const isAGV = amr.id.includes('AGV');
+    const isFL = amr.id.includes('FL') || amr.model.includes('1000');
+    const vehicleColor = isFL ? 0xf59e0b : isAGV ? 0x0284c7 : 0x10b981;
+
+    const bodyMat = new THREE.MeshStandardMaterial({ color: vehicleColor, metalness: 0.7, roughness: 0.3 });
     const metalMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
 
     const chassisGeo = new THREE.BoxGeometry(2.2, 0.9, 3.2);
@@ -424,12 +428,12 @@ export class ThreeWarehouseMap {
     group.add(roof);
 
     // Beacon Light
-    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    const beaconMat = new THREE.MeshBasicMaterial({ color: vehicleColor });
     const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.3, 12), beaconMat);
     beacon.position.set(0, 3.4, 0.4);
     group.add(beacon);
 
-    const beaconLight = new THREE.PointLight(0xff6600, 2.0, 15);
+    const beaconLight = new THREE.PointLight(vehicleColor, 2.0, 15);
     beaconLight.position.set(0, 3.5, 0.4);
     group.add(beaconLight);
 
@@ -461,7 +465,7 @@ export class ThreeWarehouseMap {
     pallet.visible = false;
     forkCarriage.add(pallet);
 
-    const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 1.2), new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 }));
+    const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 1.2), new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.3 }));
     cargo.position.set(0, 0.65, 0.75);
     cargo.visible = false;
     forkCarriage.add(cargo);
@@ -469,7 +473,7 @@ export class ThreeWarehouseMap {
     group.add(forkCarriage);
 
     // Status Halo
-    const haloMat = new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const haloMat = new THREE.MeshBasicMaterial({ color: vehicleColor, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
     const halo = new THREE.Mesh(new THREE.RingGeometry(1.8, 2.4, 24), haloMat);
     halo.rotation.x = -Math.PI / 2;
     halo.position.y = 0.05;
@@ -493,55 +497,9 @@ export class ThreeWarehouseMap {
     };
   }
 
-  createAMR3DMesh(amr) {
-    const group = new THREE.Group();
-
-    // Green AMRs (`AMR-xxx`) or Blue AGVs (`AGV-xxx`)
-    const isAGV = amr.id.includes('03') || amr.id.includes('04') || amr.id.includes('AGV');
-    const primaryColor = isAGV ? 0x0284c7 : 0x10b981; // Blue AGV or Green AMR
-
-    const chassisGeo = new THREE.BoxGeometry(2.4, 0.6, 2.8);
-    const chassisMat = new THREE.MeshStandardMaterial({ color: primaryColor, metalness: 0.8, roughness: 0.2 });
-    const chassis = new THREE.Mesh(chassisGeo, chassisMat);
-    chassis.position.y = 0.45;
-    chassis.castShadow = true;
-    group.add(chassis);
-
-    const stripeGeo = new THREE.BoxGeometry(2.45, 0.12, 2.6);
-    const stripeMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
-    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-    stripe.position.y = 0.5;
-    group.add(stripe);
-
-    const cargoGeo = new THREE.BoxGeometry(1.6, 1.2, 1.6);
-    const cargoMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 });
-    const cargo = new THREE.Mesh(cargoGeo, cargoMat);
-    cargo.position.set(0, 1.4, 0);
-    cargo.visible = false;
-    group.add(cargo);
-
-    const haloMat = new THREE.MeshBasicMaterial({ color: primaryColor, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-    const halo = new THREE.Mesh(new THREE.RingGeometry(1.5, 2.0, 24), haloMat);
-    halo.rotation.x = -Math.PI / 2;
-    halo.position.y = 0.05;
-    group.add(halo);
-
-    chassis.userData = { type: 'amr', id: amr.id };
-
-    return {
-      group,
-      haloMat,
-      cargo,
-      currentPos: this.mapToWorld(amr.pose.x, amr.pose.y, 0),
-      targetPos: this.mapToWorld(amr.pose.x, amr.pose.y, 0),
-      currentRot: amr.pose.theta || 0,
-      targetRot: amr.pose.theta || 0,
-    };
-  }
-
   createVehicleMesh(amr) {
-    const isForklift = amr.model.includes('1000') || amr.model.includes('FL') || amr.id.includes('07') || amr.id.includes('08');
-    return isForklift ? this.createForklift3DMesh(amr) : this.createAMR3DMesh(amr);
+    // All AMRs/vehicles use the 3D Forklift model with animated elevating mast & fork carriage!
+    return this.createForklift3DMesh(amr);
   }
 
   // ---------------------------------------------------------------------------
@@ -611,12 +569,11 @@ export class ThreeWarehouseMap {
       record.targetRot = amr.pose.theta || 0;
 
       const isLoaded = !!amr.payload?.isLoaded;
+      const isHandling = amr.status === 'loading' || amr.status === 'unloading';
       if (record.forkCarriage) {
-        record.pallet.visible = isLoaded;
-        record.cargo.visible = isLoaded;
-        record.targetForkY = isLoaded ? 1.8 : 0.5;
-      } else if (record.cargo) {
-        record.cargo.visible = isLoaded;
+        record.pallet.visible = isLoaded || isHandling;
+        record.cargo.visible = isLoaded || isHandling;
+        record.targetForkY = isLoaded ? 1.8 : isHandling ? 2.4 : 0.5;
       }
     }
 
