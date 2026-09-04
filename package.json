@@ -1,8 +1,9 @@
 {
-  "name": "cat-dashboard",
-  "version": "0.0.0",
+  "name": "bel-edgefleet-amr",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "description": "Edge-AI Distributed Fleet Coordination for Autonomous Mobile Robots (AMRs) in Smart Warehouses — BEL SIH",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
