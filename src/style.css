@@ -1303,3 +1303,189 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 
+
+/* SCADA Floating 3D Vehicle Badges & Viewport Controls */
+.scada-vbadge {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 100;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, transform 0.08s ease;
+  user-select: none;
+}
+
+.vbadge-content {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(0, 242, 255, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 5px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.vbadge-name {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.vbadge-amr { border-color: rgba(16, 185, 129, 0.6); }
+.vbadge-amr .vbadge-name { color: #10b981; }
+
+.vbadge-agv { border-color: rgba(2, 132, 199, 0.6); }
+.vbadge-agv .vbadge-name { color: #38bdf8; }
+
+.vbadge-fl { border-color: rgba(245, 158, 11, 0.6); }
+.vbadge-fl .vbadge-name { color: #fbbf24; }
+
+.vbadge-sub {
+  font-size: 8.5px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.scada-bottom-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 242, 255, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  pointer-events: auto;
+}
+
+.scada-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.scada-control-btn:hover {
+  background: rgba(0, 242, 255, 0.2);
+  border-color: #00f2ff;
+  color: #00f2ff;
+}
+
+.scada-top-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Reference Dashboard Grid Layout */
+.scada-dashboard-grid {
+  display: grid;
+  grid-template-columns: 270px 1fr 290px;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 1400px) {
+  .scada-dashboard-grid {
+    grid-template-columns: 240px 1fr 260px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .scada-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scada-metric-tile {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.scada-metric-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.scada-metric-lbl {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+/* Active Missions Progress Table */
+.active-missions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.active-missions-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: #64748b;
+  font-size: 9.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.active-missions-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.scada-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scada-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.scada-progress-green {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.scada-progress-cyan {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}

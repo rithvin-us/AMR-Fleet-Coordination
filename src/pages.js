@@ -222,89 +222,277 @@ export const dashboard = {
   title: 'Warehouse Map',
   render(sim) {
     return `
-    <div class="grid-4 mb-14">
-      ${kpiCard('cyan', 'fa-list-check', 'kpiCompleted', '0', 'Tasks Completed')}
-      ${kpiCard('green', 'fa-shield-halved', 'kpiCollisions', '0', 'Collisions')}
-      ${kpiCard('blue', 'fa-gauge-high', 'kpiThroughput', '0', 'Throughput / min')}
-      ${kpiCard('amber', 'fa-truck-ramp-box', 'kpiActive', '0', 'AMRs Active')}
+    <!-- SCADA DASHBOARD TOP HEADER BAR -->
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;border:1px solid rgba(255,255,255,0.1);padding:10px 16px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 12px rgba(0,0,0,0.4)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:28px;height:28px;background:rgba(16,185,129,0.15);border:1px solid #10b981;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#10b981;font-size:14px">
+          <i class="fas fa-cubes"></i>
+        </div>
+        <div class="scada-top-title">FLEET COORDINATION DASHBOARD <span style="color:#64748b">|</span> <span style="color:#10b981">ZONE 4</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:#94a3b8">
+        <div>TIME <b style="color:#fff;margin-left:4px" id="scadaClock">22:18:45</b></div>
+        <div>DATE <b style="color:#fff;margin-left:4px">2026-09-04</b></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span>NETWORK</span>
+          <span class="card-badge success" style="padding:2px 8px;font-size:9.5px"><i class="fas fa-circle" style="font-size:7px;margin-right:4px"></i> OPERATIONAL</span>
+        </div>
+      </div>
     </div>
-    <div class="grid-2-13 mb-14">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-diagram-project"></i> Live Warehouse Spatial Twin</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <div class="speed-group" id="viewModeGroup">
-              <button class="active" id="btnMode2D"><i class="fas fa-border-all"></i> 2D Plan</button>
-              <button id="btnMode3D"><i class="fas fa-cube" style="color:var(--accent)"></i> 3D Digital Twin</button>
-              <button id="btnOpenCustomizer"><i class="fas fa-sliders" style="color:var(--warning)"></i> Customize Map</button>
-            </div>
-            <span class="card-badge success" id="whBadge">DISTRIBUTED REGIME</span>
-          </div>
-        </div>
-        
-        <div class="warehouse-container-box">
-          <div class="iso-hud" id="isoHud">
-            <div class="iso-hud-badge"><i class="fas fa-shield-halved"></i> VERIFIED SCADA STREAM</div>
-            <div class="iso-hud-metric"><span>KINEMATICS</span><b id="hudCoords">X: 14.2m Y: 8.4m | v = 1.6 m/s</b></div>
-            <div class="iso-hud-metric"><span>P2P MESH</span><b class="safe">8 NODES LINKED</b></div>
-            <div class="iso-hud-metric"><span>SAFETY INVARIANT</span><b class="safe">0 COLLISIONS (100% PASS)</b></div>
-          </div>
 
-          <!-- 2D SVG Schematic View -->
-          <div id="svgCanvasWrap">
-            ${buildWarehouseSVG(sim, true)}
-          </div>
+    <!-- MAIN 3-COLUMN SCADA DASHBOARD LAYOUT -->
+    <div class="scada-dashboard-grid mb-14">
 
-          <!-- 3D WebGL Digital Twin View Container -->
-          <div id="threeCanvasContainer" style="display:none;">
-            <div class="scada-hud-overlay">
-              <div class="scada-hud-card">
-                <i class="fas fa-cube"></i> <b>WEBGL 3D DIGITAL TWIN</b> | <span id="hud3DStats">60 FPS · 3D Forklift SCADA</span>
-              </div>
-              <div class="scada-preset-bar" id="cameraPresetBar">
-                <button class="active" data-preset="3d"><i class="fas fa-camera"></i> 3D Orbit</button>
-                <button data-preset="iso"><i class="fas fa-vector-square"></i> 2.5D SCADA</button>
-                <button data-preset="2d"><i class="fas fa-map"></i> 2D Plan</button>
-                <button id="btnFullscreen3D" style="color:#00f2ff;border-left:1px solid rgba(255,255,255,0.15);padding-left:10px;"><i class="fas fa-expand"></i> Fullscreen</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="wh-legend">
-          <span class="wh-legend-tag"><i class="fas fa-truck-ramp-box icon-moving"></i> AMR Moving</span>
-          <span class="wh-legend-tag"><i class="fas fa-boxes-packing icon-loading"></i> Loading / Unloading</span>
-          <span class="wh-legend-tag"><i class="fas fa-hourglass-half icon-waiting"></i> Traffic Yield</span>
-          <span class="wh-legend-tag"><i class="fas fa-triangle-exclamation icon-fault"></i> E-Stop / Fault</span>
-          <span class="wh-legend-tag"><i class="fas fa-diamond-turn-right icon-intersection"></i> FIFO Intersect</span>
-          <span class="wh-legend-tag"><i class="fas fa-road-barrier icon-blocked"></i> Blocked Lane</span>
-          <span class="wh-legend-hint"><i class="fas fa-arrow-pointer"></i> Click graph edge to block / clear lane</span>
-        </div>
-      </div>
-      <div class="flex-side">
-        <div class="card mb-14">
-          <div class="card-header"><div class="card-title"><i class="fas fa-flask"></i> Scenario & Obstacle Injection</div></div>
-          <div class="pill-row" id="scenarioBtns">
-            <button class="btn" data-act="obstacle"><i class="fas fa-triangle-exclamation"></i> +1 Obstacle</button>
-            <button class="btn" data-act="multi_obstacle"><i class="fas fa-road-barrier"></i> +3 Multi-Obstacles</button>
-            <button class="btn" data-act="clear_obstacles"><i class="fas fa-rotate-left"></i> Clear Obstacles</button>
-            <button class="btn" data-act="failure"><i class="fas fa-plug-circle-xmark"></i> Inject Fault</button>
-            <button class="btn" data-act="lowbatt"><i class="fas fa-battery-quarter"></i> Low Battery</button>
-            <button class="btn" data-act="task"><i class="fas fa-plus"></i> Add Task</button>
-          </div>
-          <div class="hint" style="margin-top:10px"><i class="fas fa-circle-info"></i> Deterministic FIFO tokens + local A* pathing keep collisions at zero through every scenario.</div>
-        </div>
+      <!-- LEFT COLUMN: FLEET OVERVIEW & ACTIVE MISSIONS -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <!-- Fleet Overview -->
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-diagram-next"></i> Active Tasks</div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <button class="btn btn-sm primary" id="btnOpenTaskModal" style="padding:2px 8px;font-size:9.5px"><i class="fas fa-plus"></i> + Custom Task</button>
-              <span class="card-badge info" id="taskCount">0</span>
+          <div class="card-header" style="padding:10px 12px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-layer-group"></i> FLEET OVERVIEW</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0">
+            <div class="scada-metric-tile" style="border-left:3px solid #10b981">
+              <div class="scada-metric-lbl">Total Assets</div>
+              <div class="scada-metric-val" style="color:#10b981">39</div>
+            </div>
+            <div class="scada-metric-tile" style="border-left:3px solid #38bdf8">
+              <div class="scada-metric-lbl">Available</div>
+              <div class="scada-metric-val" style="color:#38bdf8">29</div>
+            </div>
+            <div class="scada-metric-tile" style="border-left:3px solid #f59e0b">
+              <div class="scada-metric-lbl">In Mission</div>
+              <div class="scada-metric-val" style="color:#fbbf24">8</div>
+            </div>
+            <div class="scada-metric-tile" style="border-left:3px solid #ea580c">
+              <div class="scada-metric-lbl">Charging</div>
+              <div class="scada-metric-val" style="color:#f97316">2</div>
             </div>
           </div>
-          <div id="taskList" style="max-height:300px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Active Missions Roster -->
+        <div class="card" style="flex:1">
+          <div class="card-header" style="padding:10px 12px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-list-check"></i> ACTIVE MISSIONS</div>
+            <span style="color:#64748b;font-size:12px"><i class="fas fa-ellipsis"></i></span>
+          </div>
+          <div style="overflow-y:auto;max-height:310px">
+            <table class="active-missions-table">
+              <thead>
+                <tr>
+                  <th>ID <i class="fas fa-arrows-up-down" style="font-size:8px"></i></th>
+                  <th>Destination</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:#10b981;font-weight:700">AMR-204</td>
+                  <td>Aisle B4</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:88%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#38bdf8;font-weight:700">AGV-158</td>
+                  <td>Aisle B1</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:82%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#10b981;font-weight:700">AMR-204</td>
+                  <td>Aisle B4</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:71%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#38bdf8;font-weight:700">AGV-198</td>
+                  <td>Aisle B3</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:64%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#38bdf8;font-weight:700">AGV-158</td>
+                  <td>Aisle B6</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:52%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#10b981;font-weight:700">AMR-103</td>
+                  <td>Aisle B6</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:45%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#38bdf8;font-weight:700">AGV-167</td>
+                  <td>Aisle B5</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:34%"></div></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#38bdf8;font-weight:700">AGV-188</td>
+                  <td>Aisle B31</td>
+                  <td>
+                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:20%"></div></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Zone 4 Utilization -->
+        <div class="card">
+          <div class="card-header" style="padding:8px 12px">
+            <div class="card-title" style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">ZONE 4 UTILIZATION</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:8px;text-anchor:middle;text-align:center">
+              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">AMRs</div>
+              <div style="font-size:18px;font-weight:800;color:#10b981;font-family:var(--font-display)">18</div>
+            </div>
+            <div style="background:rgba(2,132,199,0.1);border:1px solid rgba(2,132,199,0.3);border-radius:4px;padding:8px;text-align:center">
+              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">AGVs</div>
+              <div style="font-size:18px;font-weight:800;color:#38bdf8;font-family:var(--font-display)">12</div>
+            </div>
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:4px;padding:8px;text-align:center">
+              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">Forklifts</div>
+              <div style="font-size:18px;font-weight:800;color:#fbbf24;font-family:var(--font-display)">9</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- CENTER COLUMN: MAIN WEBGL 3D DIGITAL TWIN VIEWPORT -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="padding:0;overflow:hidden;position:relative;background:#040d1a;border:1px solid rgba(0,242,255,0.25);box-shadow:0 8px 30px rgba(0,0,0,0.6)">
+          <div class="card-header" style="padding:10px 14px;background:rgba(15,23,42,0.95);border-bottom:1px solid rgba(255,255,255,0.08)">
+            <div class="card-title" style="font-size:12px;color:#00f2ff;font-family:var(--font-display);letter-spacing:0.8px">
+              <i class="fas fa-cube" style="color:#00f2ff"></i> GLOBAL LOGISTICS HUB - ZONE 4
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="speed-group" id="viewModeGroup">
+                <button id="btnMode2D"><i class="fas fa-border-all"></i> 2D Plan</button>
+                <button class="active" id="btnMode3D"><i class="fas fa-cube" style="color:var(--accent)"></i> 3D Digital Twin</button>
+                <button id="btnOpenCustomizer"><i class="fas fa-sliders" style="color:var(--warning)"></i> Customize Map</button>
+              </div>
+              <button class="btn btn-sm btn-icon" id="btnFullscreen3DHeader" style="color:#94a3b8"><i class="fas fa-expand"></i></button>
+              <button class="btn btn-sm btn-icon" style="color:#94a3b8"><i class="fas fa-gear"></i></button>
+            </div>
+          </div>
+
+          <div class="warehouse-container-box" style="position:relative">
+            <!-- 2D SVG Schematic View (Hidden by default in 3D mode) -->
+            <div id="svgCanvasWrap" style="display:none;">
+              ${buildWarehouseSVG(sim, true)}
+            </div>
+
+            <!-- 3D WebGL Digital Twin View Container -->
+            <div id="threeCanvasContainer" style="display:block;height:540px;">
+              <div class="scada-hud-overlay">
+                <div class="scada-hud-card">
+                  <i class="fas fa-microchip" style="color:#00f2ff;margin-right:4px"></i> <b>WEBGL 3D DIGITAL TWIN</b> | <span id="hud3DStats">60 FPS · Industrial SCADA Twin</span>
+                </div>
+                <div class="scada-preset-bar" id="cameraPresetBar">
+                  <button class="active" data-preset="3d"><i class="fas fa-camera"></i> Isometric</button>
+                  <button data-preset="iso"><i class="fas fa-vector-square"></i> 2.5D Top</button>
+                  <button data-preset="2d"><i class="fas fa-map"></i> Flat Plan</button>
+                </div>
+              </div>
+
+              <!-- Bottom Floating SCADA Control Bar -->
+              <div class="scada-bottom-controls">
+                <button class="scada-control-btn" id="btnViewAngle"><i class="fas fa-arrows-spin"></i> View Angle</button>
+                <button class="scada-control-btn" id="btnZoomToggle"><i class="fas fa-magnifying-glass"></i> Zoom</button>
+                <button class="scada-control-btn" id="btnLayersToggle"><i class="fas fa-layer-group"></i> Layers</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCADA Quick Action / Scenario Controls -->
+        <div class="card" style="padding:10px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-flask"></i> SCADA SCENARIO & FAULT INJECTION</div>
+            <span class="card-badge info" style="font-size:9px">LOCAL A* & FIFO TOKENS</span>
+          </div>
+          <div class="pill-row" id="scenarioBtns">
+            <button class="btn btn-sm" data-act="obstacle"><i class="fas fa-triangle-exclamation"></i> +1 Obstacle</button>
+            <button class="btn btn-sm" data-act="multi_obstacle"><i class="fas fa-road-barrier"></i> +3 Obstacles</button>
+            <button class="btn btn-sm" data-act="clear_obstacles"><i class="fas fa-rotate-left"></i> Clear All</button>
+            <button class="btn btn-sm" data-act="failure"><i class="fas fa-plug-circle-xmark"></i> Inject Fault</button>
+            <button class="btn btn-sm" data-act="lowbatt"><i class="fas fa-battery-quarter"></i> Low Battery</button>
+            <button class="btn btn-sm primary" data-act="task"><i class="fas fa-plus"></i> Dispatch Task</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: VEHICLE STATUS, ALERTS & TRAFFIC FLOW -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <!-- Vehicle Status Roster -->
+        <div class="card">
+          <div class="card-header" style="padding:10px 12px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-truck-ramp-box"></i> VEHICLE STATUS</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
+            <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="color:#10b981;font-weight:800;font-family:var(--font-mono);font-size:12px">AMR-204</span>
+                <span style="color:#10b981;font-weight:700;font-family:var(--font-mono);font-size:11px">88%</span>
+                <span style="color:#10b981;font-weight:700;font-family:var(--font-mono);font-size:11px">88%</span>
+              </div>
+              <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:88%"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:#64748b;font-family:var(--font-mono)">
+                <span>Current Task</span>
+                <span>En Route</span>
+              </div>
+            </div>
+
+            <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="color:#fbbf24;font-weight:800;font-family:var(--font-mono);font-size:12px">FL-012</span>
+                <span style="color:#fbbf24;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
+                <span style="color:#fbbf24;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
+              </div>
+              <div class="scada-progress-bar"><div class="scada-progress-fill" style="width:54%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:#64748b;font-family:var(--font-mono)">
+                <span>Location</span>
+                <span>Charging</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications / Alerts -->
+        <div class="card">
+          <div class="card-header" style="padding:10px 12px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-bell"></i> NOTIFICATIONS/ALERTS</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px;display:flex;align-items:center;gap:10px;color:#f87171;font-family:var(--font-mono);font-size:11px">
+            <i class="fas fa-triangle-exclamation" style="font-size:14px;color:#ef4444"></i>
+            <div>Aisle B4 Blocked - Re-routing</div>
+          </div>
+        </div>
+
+        <!-- Traffic Flow Map Thermal Heatmap Preview -->
+        <div class="card">
+          <div class="card-header" style="padding:10px 12px">
+            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-fire-flame-curved"></i> TRAFFIC FLOW MAP</div>
+          </div>
+          <div style="background:#020617;border-radius:6px;padding:6px;height:120px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
+            <!-- Thermal Heatmap Canvas Graphic -->
+            <div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 40%, rgba(239,68,68,0.7), transparent 45%), radial-gradient(circle at 40% 60%, rgba(245,158,11,0.6), transparent 50%), radial-gradient(circle at 20% 30%, rgba(16,185,129,0.5), transparent 40%), linear-gradient(135deg, #040d1a 0%, #0b192c 100%);opacity:0.85"></div>
+            <div style="position:absolute;bottom:6px;left:8px;font-size:9px;color:#94a3b8;font-family:var(--font-mono);z-index:2">HIGH DENSITY CONGESTION CORRIDOR</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- SCADA TELEMETRY RING GAUGES CARD -->
@@ -475,7 +663,37 @@ export const dashboard = {
       if (drawer) drawer.classList.remove('open');
     });
 
-    // 4. Camera Presets Bar for 3D View
+    // 4. Camera Presets Bar & Floating Control Toolbar for 3D View
+    root.querySelector('#btnFullscreen3DHeader')?.addEventListener('click', () => {
+      threeMap?.toggleFullscreen();
+    });
+
+    let viewAngleIdx = 0;
+    const presets = ['3d', 'iso', '2d'];
+    root.querySelector('#btnViewAngle')?.addEventListener('click', () => {
+      viewAngleIdx = (viewAngleIdx + 1) % presets.length;
+      threeMap?.setCameraPreset(presets[viewAngleIdx]);
+    });
+
+    let zoomedIn = false;
+    root.querySelector('#btnZoomToggle')?.addEventListener('click', () => {
+      zoomedIn = !zoomedIn;
+      if (threeMap && threeMap.camera && threeMap.controls) {
+        if (zoomedIn) {
+          threeMap.camera.position.multiplyScalar(0.7);
+        } else {
+          threeMap.camera.position.multiplyScalar(1.4);
+        }
+        threeMap.controls.update();
+      }
+    });
+
+    root.querySelector('#btnLayersToggle')?.addEventListener('click', () => {
+      if (threeMap) {
+        threeMap.floorGrid.visible = !threeMap.floorGrid.visible;
+      }
+    });
+
     root.querySelector('#cameraPresetBar')?.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;

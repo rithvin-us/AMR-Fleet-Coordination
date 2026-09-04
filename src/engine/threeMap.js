@@ -1,13 +1,13 @@
 // =============================================================================
-//  threeMap.js — 3D Cyber-Industrial WebGL Digital Twin Engine (Three.js)
+//  threeMap.js — High-Realism 3D SCADA Digital Twin Engine (Three.js)
 //  
-//  Renders real-time 3D SCADA warehouse digital twin:
+//  Renders real-time 3D SCADA warehouse digital twin matching industrial SCADA reference:
 //  - Hardware-accelerated WebGL rendering with 360° OrbitControls
-//  - Realistic 3D Industrial Forklifts (elevating mast, forks, cabin cage, beacon) & AMRs
-//  - 3D Extruded Industrial Storage Racks, Pallet Trays & Workstations
-//  - Glowing dynamic pathway graph ribbons (Clear / Busy / Blocked)
-//  - Volumetric P2P Laser Mesh links between vehicles in RF range
-//  - Raycasting for edge obstacle toggle & vehicle selection
+//  - 3D Architectural Warehouse Building Enclosure (Cutaway walls, loading dock doors, semi-trucks)
+//  - Dense parallel multi-tier industrial storage aisle racks (Aisles A1-C10) with freight boxes
+//  - 3D Green AMRs, Blue AGVs & Orange Heavy Forklifts with elevating mast & rotating beacons
+//  - Floating 3D World-Space SCADA Vehicle Badges (AMR-204 | EN ROUTE)
+//  - Volumetric P2P Laser Mesh links & neon floor directional pathway ribbons
 //  - Fullscreen / Widescreen Viewport Expansion
 // =============================================================================
 
@@ -25,11 +25,11 @@ export class ThreeWarehouseMap {
 
     // Scene & Renderer Setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x040d1a);
-    this.scene.fog = new THREE.FogExp2(0x040d1a, 0.003);
+    this.scene.background = new THREE.Color(0x070f1e);
+    this.scene.fog = new THREE.FogExp2(0x070f1e, 0.0028);
 
-    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 1000);
-    this.camera.position.set(0, 95, 90);
+    this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 1, 1000);
+    this.camera.position.set(0, 110, 115);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setSize(this.width, this.height);
@@ -39,13 +39,18 @@ export class ThreeWarehouseMap {
 
     this.container.replaceChildren(this.renderer.domElement);
 
+    // Floating 3D SCADA Badge Overlay Host
+    this.badgeOverlayHost = document.createElement('div');
+    this.badgeOverlayHost.className = 'scada-badge-overlay-container';
+    this.container.appendChild(this.badgeOverlayHost);
+
     // Orbit Controls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't clip below floor
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
     this.controls.minDistance = 15;
-    this.controls.maxDistance = 300;
+    this.controls.maxDistance = 320;
     this.controls.target.set(0, 0, 0);
 
     // Lighting
@@ -53,6 +58,7 @@ export class ThreeWarehouseMap {
 
     // Scene Groups
     this.floorGroup = new THREE.Group();
+    this.buildingGroup = new THREE.Group();
     this.graphGroup = new THREE.Group();
     this.facilityGroup = new THREE.Group();
     this.amrGroup = new THREE.Group();
@@ -60,6 +66,7 @@ export class ThreeWarehouseMap {
     this.raycastGroup = new THREE.Group();
 
     this.scene.add(this.floorGroup);
+    this.scene.add(this.buildingGroup);
     this.scene.add(this.graphGroup);
     this.scene.add(this.facilityGroup);
     this.scene.add(this.amrGroup);
@@ -70,14 +77,16 @@ export class ThreeWarehouseMap {
     this.amrMeshes = new Map(); // amrId -> record
     this.edgeMeshes = new Map(); // edgeKey -> record
     this.nodeMeshes = new Map(); // nodeId -> record
+    this.badgeElements = new Map(); // amrId -> HTMLElement
 
     // Interactive Raycaster
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
     this.setupInteractivity();
 
-    // Build Floor & Environmental Decor
+    // Build Floor, Architectural Walls & Outdoor Docks
     this.buildFloor();
+    this.buildWarehouseBuildingEnclosure();
 
     // Resize Handler
     this.handleResize = this.handleResize.bind(this);
@@ -95,37 +104,37 @@ export class ThreeWarehouseMap {
   }
 
   initLighting() {
-    const ambient = new THREE.AmbientLight(0x1e293b, 2.0);
+    const ambient = new THREE.AmbientLight(0x1e293b, 2.2);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0x00f2ff, 1.4);
-    dirLight.position.set(50, 120, 60);
+    const dirLight = new THREE.DirectionalLight(0x00f2ff, 1.5);
+    dirLight.position.set(60, 130, 70);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 300;
-    dirLight.shadow.camera.left = -100;
-    dirLight.shadow.camera.right = 100;
-    dirLight.shadow.camera.top = 70;
-    dirLight.shadow.camera.bottom = -70;
+    dirLight.shadow.camera.far = 320;
+    dirLight.shadow.camera.left = -110;
+    dirLight.shadow.camera.right = 110;
+    dirLight.shadow.camera.top = 80;
+    dirLight.shadow.camera.bottom = -80;
     this.scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x3b82f6, 0.7);
-    fillLight.position.set(-70, 50, -60);
+    const fillLight = new THREE.DirectionalLight(0x3b82f6, 0.8);
+    fillLight.position.set(-80, 60, -70);
     this.scene.add(fillLight);
 
-    const centerPoint = new THREE.PointLight(0x00f2ff, 1.0, 140);
-    centerPoint.position.set(0, 20, 0);
+    const centerPoint = new THREE.PointLight(0x00f2ff, 1.2, 160);
+    centerPoint.position.set(0, 25, 0);
     this.scene.add(centerPoint);
   }
 
   buildFloor() {
-    // Large Cyber metallic floor plane (220x160)
-    const floorGeo = new THREE.PlaneGeometry(220, 160);
+    // Large Cyber metallic floor plane (240x180)
+    const floorGeo = new THREE.PlaneGeometry(240, 180);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x040e1e,
-      roughness: 0.25,
+      color: 0x0a1628,
+      roughness: 0.2,
       metalness: 0.85,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -134,23 +143,109 @@ export class ThreeWarehouseMap {
     floor.receiveShadow = true;
     this.floorGroup.add(floor);
 
+    // Outdoor Asphalt Loading Apron Ground
+    const asphaltGeo = new THREE.PlaneGeometry(240, 60);
+    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x020814, roughness: 0.9, metalness: 0.1 });
+    const apron = new THREE.Mesh(asphaltGeo, asphaltMat);
+    apron.rotation.x = -Math.PI / 2;
+    apron.position.set(0, -0.12, 90);
+    this.floorGroup.add(apron);
+
     // Glowing Cyber Grid Overlay
-    const gridHelper = new THREE.GridHelper(220, 44, 0x00f2ff, 0x1e293b);
+    const gridHelper = new THREE.GridHelper(240, 48, 0x00f2ff, 0x1e293b);
     gridHelper.position.y = 0.01;
     gridHelper.material.opacity = 0.3;
     gridHelper.material.transparent = true;
     this.floorGroup.add(gridHelper);
 
-    // Outer Facility Boundary Perimeter Guard Frame
-    const frameGeo = new THREE.BoxGeometry(164, 1.2, 104);
+    // Outer Facility Perimeter Line
+    const frameGeo = new THREE.BoxGeometry(166, 1.4, 106);
     const frameMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true });
     const frame = new THREE.Mesh(frameGeo, frameMat);
-    frame.position.set(0, 0.6, 0);
+    frame.position.set(0, 0.7, 0);
     this.floorGroup.add(frame);
   }
 
   // ---------------------------------------------------------------------------
-  // Build 3D Warehouse Scene Graph (Nodes, Edges, Racks, Stations, Pallet Trays)
+  // Build Architectural Warehouse Building Enclosure & Semi-Truck Trailers
+  // ---------------------------------------------------------------------------
+  buildWarehouseBuildingEnclosure() {
+    this.buildingGroup.clear();
+
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
+
+    // Rear Facility Wall (Back Z = -53)
+    const rearWallGeo = new THREE.BoxGeometry(168, 18, 1.5);
+    const rearWall = new THREE.Mesh(rearWallGeo, wallMat);
+    rearWall.position.set(0, 9, -53);
+    this.buildingGroup.add(rearWall);
+
+    // Left Facility Wall (Side X = -83)
+    const leftWallGeo = new THREE.BoxGeometry(1.5, 18, 108);
+    const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
+    leftWall.position.set(-83, 9, 0);
+    this.buildingGroup.add(leftWall);
+
+    // Front Loading Dock Wall with 4 Dock Door Cutouts (Z = 53)
+    const dockWallGeo = new THREE.BoxGeometry(168, 18, 1.5);
+    const dockWall = new THREE.Mesh(dockWallGeo, wallMat);
+    dockWall.position.set(0, 9, 53);
+    this.buildingGroup.add(dockWall);
+
+    // 4 Shipping Dock Door Overhead Rollers & Frames
+    [-55, -20, 20, 55].forEach((dx) => {
+      const doorGeo = new THREE.BoxGeometry(10, 10, 0.4);
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.2 });
+      const door = new THREE.Mesh(doorGeo, doorMat);
+      door.position.set(dx, 5.0, 52.5);
+      this.buildingGroup.add(door);
+
+      // Frame Accent
+      const borderGeo = new THREE.BoxGeometry(10.6, 0.4, 0.6);
+      const border = new THREE.Mesh(borderGeo, trimMat);
+      border.position.set(dx, 10.2, 52.5);
+      this.buildingGroup.add(border);
+
+      // Outdoor Semi-Trailer Truck Parked at Loading Bay
+      this.createSemiTruckModel(dx, 68);
+    });
+  }
+
+  createSemiTruckModel(x, z) {
+    const truckGroup = new THREE.Group();
+    truckGroup.position.set(x, 0, z);
+
+    const cabMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.3 });
+    const trailerMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.6, roughness: 0.4 });
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+
+    // Truck Driver Cab
+    const cabGeo = new THREE.BoxGeometry(3.6, 4.2, 4.5);
+    const cab = new THREE.Mesh(cabGeo, cabMat);
+    cab.position.set(0, 2.1, 7.5);
+    truckGroup.add(cab);
+
+    // Long Freight Trailer Box
+    const trailerGeo = new THREE.BoxGeometry(3.8, 4.8, 14.0);
+    const trailer = new THREE.Mesh(trailerGeo, trailerMat);
+    trailer.position.set(0, 2.4, -2.0);
+    truckGroup.add(trailer);
+
+    // 8 Wheels
+    const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.4, 16);
+    [[-1.9, 0.6, 7.5], [1.9, 0.6, 7.5], [-1.9, 0.6, -4.0], [1.9, 0.6, -4.0], [-1.9, 0.6, -7.0], [1.9, 0.6, -7.0]].forEach(([wx, wy, wz]) => {
+      const wheel = new THREE.Mesh(wheelGeo, metalMat);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(wx, wy, wz);
+      truckGroup.add(wheel);
+    });
+
+    this.buildingGroup.add(truckGroup);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build 3D Warehouse Scene Graph (Nodes, Edges, Racks, Stations)
   // ---------------------------------------------------------------------------
   buildSceneGraph(graph) {
     this.graphGroup.clear();
@@ -159,7 +254,7 @@ export class ThreeWarehouseMap {
     this.edgeMeshes.clear();
     this.nodeMeshes.clear();
 
-    // 1. Build Edges (Pathways)
+    // 1. Build Edges (Pathways) with Neon Directional Arrow Markings
     for (const edge of graph.edges.values()) {
       const na = graph.getNode(edge.a);
       const nb = graph.getNode(edge.b);
@@ -173,7 +268,7 @@ export class ThreeWarehouseMap {
       const midPoint = new THREE.Vector3().addVectors(pA, pB).multiplyScalar(0.5);
 
       // Pathway Ribbon Mesh
-      const ribbonGeo = new THREE.BoxGeometry(1.0, 0.06, length);
+      const ribbonGeo = new THREE.BoxGeometry(1.1, 0.06, length);
       const ribbonMat = new THREE.MeshStandardMaterial({
         color: 0x00f2ff,
         emissive: 0x004466,
@@ -185,7 +280,7 @@ export class ThreeWarehouseMap {
       ribbon.position.copy(midPoint);
       ribbon.lookAt(pB);
 
-      // Invisible Hitbox for Raycasting
+      // Raycast Hitbox
       const hitGeo = new THREE.BoxGeometry(3.5, 1.4, length);
       const hitMat = new THREE.MeshBasicMaterial({ visible: false });
       const hitBox = new THREE.Mesh(hitGeo, hitMat);
@@ -198,13 +293,12 @@ export class ThreeWarehouseMap {
       this.edgeMeshes.set(edge.key, { ribbon, hitBox, mat: ribbonMat });
     }
 
-    // 2. Build Nodes & Infrastructure (Multi-tier Racks, Charge Stations, Pallet Trays)
+    // 2. Build Industrial Infrastructure & Multi-Tier Storage Rack Aisles
     for (const node of graph.nodes.values()) {
       const pos = this.mapToWorld(node.x, node.y, 0.2);
 
       let nodeMesh;
       if (node.type === 'intersection') {
-        // Glowing Octahedron FIFO Intersection
         const geo = new THREE.OctahedronGeometry(1.8);
         const mat = new THREE.MeshStandardMaterial({
           color: 0xffa500,
@@ -223,20 +317,18 @@ export class ThreeWarehouseMap {
 
         this.nodeMeshes.set(node.id, { mesh: nodeMesh, ring, mat });
       } else if (node.type === 'charging') {
-        // Charging Dock Base
         const padGeo = new THREE.BoxGeometry(4.8, 0.2, 4.8);
         const padMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x054f34, emissiveIntensity: 0.5 });
         nodeMesh = new THREE.Mesh(padGeo, padMat);
         nodeMesh.position.copy(pos);
 
-        // Charging Tower & Light Pillar
         const pillarGeo = new THREE.BoxGeometry(1.0, 4.5, 1.0);
         const pillarMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.85 });
         const pillar = new THREE.Mesh(pillarGeo, pillarMat);
         pillar.position.set(pos.x, 2.25, pos.z - 2.0);
         this.facilityGroup.add(pillar);
       } else if (node.type === 'storage') {
-        // 3D Industrial Multi-tier Storage Aisle Rack
+        // Multi-tier Storage Rack Aisle
         const rackGroup = new THREE.Group();
         rackGroup.position.copy(pos);
 
@@ -252,14 +344,14 @@ export class ThreeWarehouseMap {
           rackGroup.add(p);
         });
 
-        // 3 Shelves with Pallet Trays & Freight Containers
+        // 3 Shelf Levels with Goods Containers
         [1.2, 3.0, 4.8].forEach((lvlY) => {
           const shelfGeo = new THREE.BoxGeometry(4.8, 0.12, 3.4);
           const shelf = new THREE.Mesh(shelfGeo, frameMat);
           shelf.position.set(0, lvlY, 0);
           rackGroup.add(shelf);
 
-          // Pallet Tray
+          // Pallet & Freight Crate
           const palletGeo = new THREE.BoxGeometry(1.6, 0.2, 1.6);
           const pal1 = new THREE.Mesh(palletGeo, palletMat);
           pal1.position.set(-1.2, lvlY + 0.15, 0);
@@ -268,7 +360,6 @@ export class ThreeWarehouseMap {
           rackGroup.add(pal1);
           rackGroup.add(pal2);
 
-          // Cargo Crate on Pallet
           const crateGeo = new THREE.BoxGeometry(1.3, 1.0, 1.3);
           const c1 = new THREE.Mesh(crateGeo, boxMat);
           c1.position.set(-1.2, lvlY + 0.75, 0);
@@ -280,7 +371,6 @@ export class ThreeWarehouseMap {
 
         nodeMesh = rackGroup;
       } else {
-        // General Node Marker / Pallet Tray Drop Zone
         const geo = new THREE.CylinderGeometry(1.2, 1.2, 0.1, 16);
         const mat = new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0284c7, emissiveIntensity: 0.4 });
         nodeMesh = new THREE.Mesh(geo, mat);
@@ -292,16 +382,14 @@ export class ThreeWarehouseMap {
   }
 
   // ---------------------------------------------------------------------------
-  // Create 3D Industrial Forklift Vehicle Model
+  // Vehicle Models (Green AMRs, Blue AGVs, Orange Forklifts)
   // ---------------------------------------------------------------------------
   createForklift3DMesh(amr) {
     const group = new THREE.Group();
 
-    // Heavy Chassis Body (Industrial Orange / Dark Navy)
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xeab308, metalness: 0.7, roughness: 0.3 });
-    const metalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9, roughness: 0.2 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf97316, metalness: 0.7, roughness: 0.3 }); // Orange
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
 
-    // Chassis Box & Rear Counterweight
     const chassisGeo = new THREE.BoxGeometry(2.2, 0.9, 3.2);
     const chassis = new THREE.Mesh(chassisGeo, bodyMat);
     chassis.position.set(0, 0.65, -0.2);
@@ -313,17 +401,16 @@ export class ThreeWarehouseMap {
     counterweight.position.set(0, 0.8, -1.3);
     group.add(counterweight);
 
-    // 4 Industrial Wheels
+    // 4 Wheels
     const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.3, 16);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
     [[-1.2, 0.45, -1.0], [1.2, 0.45, -1.0], [-1.2, 0.45, 1.0], [1.2, 0.45, 1.0]].forEach(([wx, wy, wz]) => {
-      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+      const wheel = new THREE.Mesh(wheelGeo, metalMat);
       wheel.rotation.z = Math.PI / 2;
       wheel.position.set(wx, wy, wz);
       group.add(wheel);
     });
 
-    // Driver Roll Cage Cabin Frame
+    // Roll Cage
     const pillarGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.2, 8);
     [[-1.0, -0.8], [1.0, -0.8], [-1.0, 0.6], [1.0, 0.6]].forEach(([px, pz]) => {
       const pillar = new THREE.Mesh(pillarGeo, metalMat);
@@ -331,16 +418,14 @@ export class ThreeWarehouseMap {
       group.add(pillar);
     });
 
-    // Cabin Roof Guard
     const roofGeo = new THREE.BoxGeometry(2.2, 0.1, 1.6);
     const roof = new THREE.Mesh(roofGeo, metalMat);
     roof.position.set(0, 3.2, -0.1);
     group.add(roof);
 
-    // Roof Rotating Beacon Light (Flashing Orange)
-    const beaconGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.3, 12);
+    // Beacon Light
     const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
-    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+    const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.3, 12), beaconMat);
     beacon.position.set(0, 3.4, 0.4);
     group.add(beacon);
 
@@ -348,69 +433,44 @@ export class ThreeWarehouseMap {
     beaconLight.position.set(0, 3.5, 0.4);
     group.add(beaconLight);
 
-    // Vertical Steel Mast Rails (Front of Forklift)
+    // Vertical Mast & Fork Carriage
     const mastGeo = new THREE.BoxGeometry(0.15, 3.4, 0.15);
-    const mastLeft = new THREE.Mesh(mastGeo, metalMat);
-    mastLeft.position.set(-0.8, 1.8, 1.5);
-    const mastRight = new THREE.Mesh(mastGeo, metalMat);
-    mastRight.position.set(0.8, 1.8, 1.5);
-    group.add(mastLeft);
-    group.add(mastRight);
+    const mL = new THREE.Mesh(mastGeo, metalMat);
+    mL.position.set(-0.8, 1.8, 1.5);
+    const mR = new THREE.Mesh(mastGeo, metalMat);
+    mR.position.set(0.8, 1.8, 1.5);
+    group.add(mL);
+    group.add(mR);
 
-    // Elevating Fork Carriage Assembly Group
     const forkCarriage = new THREE.Group();
-    forkCarriage.position.set(0, 0.6, 1.55); // Default lowered position
+    forkCarriage.position.set(0, 0.6, 1.55);
 
-    const crossbarGeo = new THREE.BoxGeometry(1.8, 0.4, 0.1);
-    const crossbar = new THREE.Mesh(crossbarGeo, metalMat);
+    const crossbar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 0.1), metalMat);
     forkCarriage.add(crossbar);
 
-    // 2 Horizontal Steel Lifting Forks
     const forkGeo = new THREE.BoxGeometry(0.2, 0.08, 1.5);
-    const forkL = new THREE.Mesh(forkGeo, metalMat);
-    forkL.position.set(-0.55, -0.15, 0.75);
-    const forkR = new THREE.Mesh(forkGeo, metalMat);
-    forkR.position.set(0.55, -0.15, 0.75);
-    forkCarriage.add(forkL);
-    forkCarriage.add(forkR);
+    const fL = new THREE.Mesh(forkGeo, metalMat);
+    fL.position.set(-0.55, -0.15, 0.75);
+    const fR = new THREE.Mesh(forkGeo, metalMat);
+    fR.position.set(0.55, -0.15, 0.75);
+    forkCarriage.add(fL);
+    forkCarriage.add(fR);
 
-    // Freight Cargo Pallet & Container on Forks
-    const palletGeo = new THREE.BoxGeometry(1.6, 0.18, 1.4);
-    const palletMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
-    const pallet = new THREE.Mesh(palletGeo, palletMat);
+    const pallet = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.18, 1.4), new THREE.MeshStandardMaterial({ color: 0x78350f }));
     pallet.position.set(0, 0.0, 0.75);
     pallet.visible = false;
     forkCarriage.add(pallet);
 
-    const cargoGeo = new THREE.BoxGeometry(1.4, 1.1, 1.2);
-    const cargoMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 });
-    const cargo = new THREE.Mesh(cargoGeo, cargoMat);
+    const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 1.2), new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 }));
     cargo.position.set(0, 0.65, 0.75);
     cargo.visible = false;
     forkCarriage.add(cargo);
 
     group.add(forkCarriage);
 
-    // Dual Headlights
-    const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const hL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.1), lightMat);
-    hL.position.set(-0.85, 1.1, 1.42);
-    const hR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.1), lightMat);
-    hR.position.set(0.85, 1.1, 1.42);
-    group.add(hL);
-    group.add(hR);
-
-    // Spotlight Light Beams Forward
-    const spot = new THREE.SpotLight(0x00f2ff, 3.5, 20, Math.PI / 5, 0.4);
-    spot.position.set(0, 1.2, 1.5);
-    spot.target.position.set(0, 0, 12);
-    group.add(spot);
-    group.add(spot.target);
-
-    // Under-chassis Status Halo
-    const haloGeo = new THREE.RingGeometry(1.8, 2.4, 24);
-    const haloMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-    const halo = new THREE.Mesh(haloGeo, haloMat);
+    // Status Halo
+    const haloMat = new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const halo = new THREE.Mesh(new THREE.RingGeometry(1.8, 2.4, 24), haloMat);
     halo.rotation.x = -Math.PI / 2;
     halo.position.y = 0.05;
     group.add(halo);
@@ -419,7 +479,6 @@ export class ThreeWarehouseMap {
 
     return {
       group,
-      halo,
       haloMat,
       forkCarriage,
       pallet,
@@ -434,46 +493,35 @@ export class ThreeWarehouseMap {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // Create 3D Sub-Chassis Lifter AMR Model
-  // ---------------------------------------------------------------------------
-  createLifter3DMesh(amr) {
+  createAMR3DMesh(amr) {
     const group = new THREE.Group();
 
-    // Compact Low-Profile Body
-    const chassisGeo = new THREE.BoxGeometry(2.2, 0.6, 2.8);
-    const chassisMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 });
+    // Green AMRs (`AMR-xxx`) or Blue AGVs (`AGV-xxx`)
+    const isAGV = amr.id.includes('03') || amr.id.includes('04') || amr.id.includes('AGV');
+    const primaryColor = isAGV ? 0x0284c7 : 0x10b981; // Blue AGV or Green AMR
+
+    const chassisGeo = new THREE.BoxGeometry(2.4, 0.6, 2.8);
+    const chassisMat = new THREE.MeshStandardMaterial({ color: primaryColor, metalness: 0.8, roughness: 0.2 });
     const chassis = new THREE.Mesh(chassisGeo, chassisMat);
     chassis.position.y = 0.45;
     chassis.castShadow = true;
     group.add(chassis);
 
-    // Glowing Accent Stripe
-    const stripeGeo = new THREE.BoxGeometry(2.25, 0.12, 2.6);
+    const stripeGeo = new THREE.BoxGeometry(2.45, 0.12, 2.6);
     const stripeMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
     const stripe = new THREE.Mesh(stripeGeo, stripeMat);
     stripe.position.y = 0.5;
     group.add(stripe);
 
-    // Central Hydraulic Lift Pad
-    const padGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 16);
-    const padMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
-    const pad = new THREE.Mesh(padGeo, padMat);
-    pad.position.set(0, 0.85, 0);
-    group.add(pad);
-
-    // Cargo Freight Box on Lift Pad
     const cargoGeo = new THREE.BoxGeometry(1.6, 1.2, 1.6);
     const cargoMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 });
     const cargo = new THREE.Mesh(cargoGeo, cargoMat);
-    cargo.position.set(0, 1.55, 0);
+    cargo.position.set(0, 1.4, 0);
     cargo.visible = false;
     group.add(cargo);
 
-    // Status Halo
-    const haloGeo = new THREE.RingGeometry(1.5, 2.0, 24);
-    const haloMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-    const halo = new THREE.Mesh(haloGeo, haloMat);
+    const haloMat = new THREE.MeshBasicMaterial({ color: primaryColor, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const halo = new THREE.Mesh(new THREE.RingGeometry(1.5, 2.0, 24), haloMat);
     halo.rotation.x = -Math.PI / 2;
     halo.position.y = 0.05;
     group.add(halo);
@@ -482,7 +530,6 @@ export class ThreeWarehouseMap {
 
     return {
       group,
-      halo,
       haloMat,
       cargo,
       currentPos: this.mapToWorld(amr.pose.x, amr.pose.y, 0),
@@ -492,12 +539,9 @@ export class ThreeWarehouseMap {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // Vehicle Mesh Factory (Forklift vs Lifter AMR)
-  // ---------------------------------------------------------------------------
   createVehicleMesh(amr) {
     const isForklift = amr.model.includes('1000') || amr.model.includes('FL') || amr.id.includes('07') || amr.id.includes('08');
-    return isForklift ? this.createForklift3DMesh(amr) : this.createLifter3DMesh(amr);
+    return isForklift ? this.createForklift3DMesh(amr) : this.createAMR3DMesh(amr);
   }
 
   // ---------------------------------------------------------------------------
@@ -510,7 +554,7 @@ export class ThreeWarehouseMap {
       this.buildSceneGraph(sim.graph);
     }
 
-    // 1. Update Graph Edges (Blocked / Busy Status)
+    // 1. Update Graph Edges
     for (const [key, obj] of this.edgeMeshes.entries()) {
       const edge = sim.graph.edges.get(key);
       if (!edge) continue;
@@ -541,24 +585,17 @@ export class ThreeWarehouseMap {
     }
 
     // 3. Update AMRs / 3D Forklifts
-    const statusColors = {
-      moving: 0x00f2ff,
-      idle: 0x3b82f6,
-      charging: 0x10b981,
-      loading: 0xf59e0b,
-      unloading: 0xf59e0b,
-      waiting_token: 0x8b5cf6,
-      waiting_traffic: 0xeab308,
-      failed: 0xef4444,
-      stopped: 0xef4444,
-    };
-
     const currentAMRIds = new Set(sim.agents.map((a) => a.id));
 
     for (const [id, record] of this.amrMeshes.entries()) {
       if (!currentAMRIds.has(id)) {
         this.amrGroup.remove(record.group);
         this.amrMeshes.delete(id);
+        const badgeEl = this.badgeElements.get(id);
+        if (badgeEl) {
+          badgeEl.remove();
+          this.badgeElements.delete(id);
+        }
       }
     }
 
@@ -573,10 +610,6 @@ export class ThreeWarehouseMap {
       record.targetPos = this.mapToWorld(amr.pose.x, amr.pose.y, 0);
       record.targetRot = amr.pose.theta || 0;
 
-      const col = statusColors[amr.status] || 0x00f2ff;
-      record.haloMat.color.setHex(col);
-
-      // Handle Cargo Box & Forklift Mast Elevation
       const isLoaded = !!amr.payload?.isLoaded;
       if (record.forkCarriage) {
         record.pallet.visible = isLoaded;
@@ -589,6 +622,52 @@ export class ThreeWarehouseMap {
 
     // 4. Update Laser P2P Mesh Beams
     this.updateP2PMeshBeams(sim);
+
+    // 5. Update Floating 3D World-Space Vehicle Badges
+    this.updateVehicleBadges(sim);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Floating 3D World-Space Vehicle SCADA Badges (AMR-204 | PICKING)
+  // ---------------------------------------------------------------------------
+  updateVehicleBadges(sim) {
+    if (!this.badgeOverlayHost || !this.container) return;
+
+    const rect = this.container.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    for (const amr of sim.agents) {
+      const record = this.amrMeshes.get(amr.id);
+      if (!record) continue;
+
+      let badge = this.badgeElements.get(amr.id);
+      if (!badge) {
+        badge = document.createElement('div');
+        const vType = amr.id.includes('FL') || amr.model.includes('1000') ? 'fl' : amr.id.includes('AGV') ? 'agv' : 'amr';
+        badge.className = `scada-vbadge vbadge-${vType}`;
+        this.badgeOverlayHost.appendChild(badge);
+        this.badgeElements.set(amr.id, badge);
+      }
+
+      // Project 3D world position above vehicle to 2D screen coordinate
+      const worldPos = record.currentPos.clone().add(new THREE.Vector3(0, 4.8, 0));
+      worldPos.project(this.camera);
+
+      // Check if vehicle is in front of camera
+      if (worldPos.z < 1) {
+        const screenX = (worldPos.x * 0.5 + 0.5) * width;
+        const screenY = (-worldPos.y * 0.5 + 0.5) * height;
+
+        badge.style.display = 'flex';
+        badge.style.transform = `translate3d(${screenX}px, ${screenY}px, 0)`;
+        
+        const statusTxt = amr.status === 'moving' ? (amr.payload.isLoaded ? 'DELIVERING' : 'EN ROUTE') : amr.status.toUpperCase();
+        badge.innerHTML = `<span class="vbadge-id">${amr.id}</span><span class="vbadge-status">${statusTxt}</span>`;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -639,18 +718,15 @@ export class ThreeWarehouseMap {
     const time = Date.now() * 0.005;
 
     for (const record of this.amrMeshes.values()) {
-      // Lerp Vehicle Positions
       record.currentPos.lerp(record.targetPos, 0.15);
       record.group.position.copy(record.currentPos);
 
-      // Lerp Rotation
       let diff = record.targetRot - record.currentRot;
       while (diff < -Math.PI) diff += Math.PI * 2;
       while (diff > Math.PI) diff -= Math.PI * 2;
       record.currentRot += diff * 0.15;
       record.group.rotation.y = -record.currentRot + Math.PI / 2;
 
-      // Lerp Forklift Mast Height & Pulse Beacon Light
       if (record.forkCarriage) {
         record.currentForkY += (record.targetForkY - record.currentForkY) * 0.1;
         record.forkCarriage.position.y = record.currentForkY;
@@ -660,7 +736,6 @@ export class ThreeWarehouseMap {
       }
     }
 
-    // Pulse Intersections
     for (const obj of this.nodeMeshes.values()) {
       if (obj.mesh) {
         obj.mesh.rotation.y = time * 0.2;
@@ -670,25 +745,22 @@ export class ThreeWarehouseMap {
     this.renderer.render(this.scene, this.camera);
   }
 
-  // ---------------------------------------------------------------------------
-  // Camera View Presets
-  // ---------------------------------------------------------------------------
   setCameraPreset(mode) {
     const duration = 800;
     const startPos = this.camera.position.clone();
     const startTarget = this.controls.target.clone();
 
-    let endPos = new THREE.Vector3(0, 95, 90);
+    let endPos = new THREE.Vector3(0, 110, 115);
     let endTarget = new THREE.Vector3(0, 0, 0);
 
     if (mode === '2d') {
-      endPos.set(0, 140, 0.01);
+      endPos.set(0, 150, 0.01);
       endTarget.set(0, 0, 0);
     } else if (mode === 'iso') {
-      endPos.set(70, 85, 70);
+      endPos.set(75, 90, 75);
       endTarget.set(0, 0, 0);
     } else {
-      endPos.set(0, 95, 90);
+      endPos.set(0, 110, 115);
       endTarget.set(0, 0, 0);
     }
 
@@ -709,9 +781,6 @@ export class ThreeWarehouseMap {
     requestAnimationFrame(animateCamera);
   }
 
-  // ---------------------------------------------------------------------------
-  // Interactivity & Fullscreen Controls
-  // ---------------------------------------------------------------------------
   setupInteractivity() {
     const dom = this.renderer.domElement;
 
