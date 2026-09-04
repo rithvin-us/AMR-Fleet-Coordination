@@ -23,6 +23,7 @@ import {
   DEFAULT_WEIGHTS,
   DEFAULT_CONFIG,
   defaultSettings,
+  FACTORY_BRANCHES,
 } from '../data.js';
 
 const TICK_MS = 100; // wall-clock cadence
@@ -202,8 +203,71 @@ export class Simulation {
   }
 
   // ---------------------------------------------------------------------------
-  //  Task book
+  //  Task book & Enterprise Multi-Factory Management
   // ---------------------------------------------------------------------------
+  switchFactoryBranch(branchKey) {
+    const branch = FACTORY_BRANCHES[branchKey];
+    if (!branch) return false;
+    this.activeBranchId = branchKey;
+    this.graph = new WarehouseGraph(branch.nodes, branch.edges, branch.zones);
+    this._syncGraphState();
+    this._pushAlert('info', 'Factory Branch Switched', `Active enterprise topology changed to ${branch.name}.`);
+    return true;
+  }
+
+  addTask({ pickup, dropoff, priority = 2, loadKg = 150 }) {
+    const id = `TASK-${String(1000 + this._taskSeq++).toString()}`;
+    const newTask = {
+      id,
+      pickup: pickup || 'STOR-A1',
+      dropoff: dropoff || 'DROP-1',
+      priority: Number(priority),
+      loadKg: Number(loadKg),
+      status: 'unassigned',
+      assignedAmrId: null,
+      createdAt: this.time,
+      startedAt: null,
+      completedAt: null,
+      totalTimeSeconds: null,
+    };
+    this.tasks.push(newTask);
+    this._pushAlert('info', 'Task Created', `Custom task ${id} queued: ${newTask.pickup} → ${newTask.dropoff} (${newTask.loadKg}kg, P${newTask.priority})`);
+    return newTask;
+  }
+
+  updateTask(taskId, updates) {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return null;
+    if (updates.pickup) task.pickup = updates.pickup;
+    if (updates.dropoff) task.dropoff = updates.dropoff;
+    if (updates.priority != null) task.priority = Number(updates.priority);
+    if (updates.loadKg != null) task.loadKg = Number(updates.loadKg);
+    
+    if (task.status === 'assigned' || task.status === 'in_progress') {
+      task.status = 'unassigned';
+      task.assignedAmrId = null;
+    }
+    this._pushAlert('info', 'Task Modified', `${taskId} updated: ${task.pickup} → ${task.dropoff} (P${task.priority})`);
+    return task;
+  }
+
+  cancelTask(taskId) {
+    const idx = this.tasks.findIndex((t) => t.id === taskId);
+    if (idx !== -1) {
+      const removed = this.tasks.splice(idx, 1)[0];
+      if (removed.assignedAmrId) {
+        const a = this.getAgent(removed.assignedAmrId);
+        if (a) {
+          a.task = null;
+          a.status = 'idle';
+        }
+      }
+      this._pushAlert('warning', 'Task Cancelled', `${taskId} was cancelled from order book.`);
+      return removed;
+    }
+    return null;
+  }
+
   _spawnTask(tmpl) {
     const id = `TASK-${String(1000 + this._taskSeq++).toString()}`;
     this.tasks.push({

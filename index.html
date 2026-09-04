@@ -6,20 +6,26 @@
   <meta name="description" content="BEL EdgeFleet — Edge-AI Distributed Fleet Coordination for Autonomous Mobile Robots (AMRs) in Smart Warehouses. Smart India Hackathon." />
   <title>BEL EdgeFleet | Distributed AMR Coordination</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
-<body class="dark">
+<body class="light">
   <div id="app">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo">
-          <div class="logo-mark"><i class="fas fa-robot"></i></div>
+          <div class="logo-mark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
           <div class="logo-text">
             <span class="logo-title">EDGE<span class="accent">FLEET</span></span>
-            <span class="logo-sub">BEL · Smart Warehouse</span>
+            <span class="logo-sub">BHARAT ELECTRONICS · SCADA</span>
           </div>
         </div>
         <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-angles-left"></i></button>
@@ -27,7 +33,7 @@
       <nav class="sidebar-nav">
         <div class="nav-section-label">OVERVIEW</div>
         <a class="nav-item active" data-page="dashboard"><i class="fas fa-diagram-project"></i><span>Warehouse Map</span></a>
-        <a class="nav-item" data-page="fleet"><i class="fas fa-robot"></i><span>Fleet Monitor</span></a>
+        <a class="nav-item" data-page="fleet"><i class="fas fa-truck-ramp-box"></i><span>Fleet Monitor</span></a>
         <a class="nav-item" data-page="v2v"><i class="fas fa-tower-broadcast"></i><span>P2P Mesh</span></a>
         <div class="nav-section-label">COORDINATION</div>
         <a class="nav-item" data-page="token"><i class="fas fa-key"></i><span>FIFO Tokens</span></a>
@@ -47,6 +53,7 @@
           <div class="status-dot online"></div>
         </div>
       </div>
+      <div class="sidebar-resizer" id="sidebarResizer" title="Drag edge to resize taskbar"></div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -60,7 +67,7 @@
         <div class="topbar-center">
           <div class="sim-controls">
             <button class="sim-btn primary" id="btnPlayPause" title="Play / Pause"><i class="fas fa-play"></i></button>
-            <button class="sim-btn" id="btnReset" title="Reset simulation"><i class="fas fa-rotate-left"></i></button>
+            <button class="sim-btn" id="btnReset" title="Reset System Loop"><i class="fas fa-rotate-left"></i></button>
             <div class="speed-group" id="speedGroup">
               <button data-speed="1">1×</button>
               <button data-speed="2" class="active">2×</button>

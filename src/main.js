@@ -47,10 +47,47 @@ pageContainer.addEventListener('click', (e) => {
 });
 
 // ---------------------------------------------------------------------------
-//  Sidebar
+//  Sidebar & Resizer (Drag to resize Taskbar width)
 // ---------------------------------------------------------------------------
-$('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+$('sidebarToggle').addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+  if (sidebar.classList.contains('collapsed')) {
+    sidebar.style.width = '';
+  } else {
+    const w = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
+    if (w) sidebar.style.width = w;
+  }
+});
 $('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+const sidebarResizer = $('sidebarResizer');
+if (sidebar && sidebarResizer) {
+  let isResizing = false;
+
+  sidebarResizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    sidebarResizer.classList.add('resizing');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    if (sidebar.classList.contains('collapsed')) return;
+    const newWidth = Math.max(160, Math.min(480, e.clientX));
+    sidebar.style.width = `${newWidth}px`;
+    document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      sidebarResizer.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+}
 
 // ---------------------------------------------------------------------------
 //  Simulation controls
