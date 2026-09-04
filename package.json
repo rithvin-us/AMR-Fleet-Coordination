@@ -1,9 +1,9 @@
 {
-  "name": "bel-edgefleet-amr",
+  "name": "mosaic-amr-fleet",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Edge-AI Distributed Fleet Coordination for Autonomous Mobile Robots (AMRs) in Smart Warehouses — BEL SIH",
+  "description": "MOSAIC — Edge-AI Distributed Fleet Coordination for Autonomous Mobile Robots (AMRs) in Smart Warehouses",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

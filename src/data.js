@@ -1,5 +1,5 @@
 // =============================================================================
-//  EdgeFleet — BEL Smart Warehouse AMR Coordination System
+//  MOSAIC — Smart Warehouse AMR Coordination System
 //  data.js — Static domain definitions (warehouse graph, fleet, tasks, config)
 //
 //  Everything below is *seed* data. Live state is owned by the simulation

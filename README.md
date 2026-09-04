@@ -1,7 +1,6 @@
-# 🤖 BEL EdgeFleet — Distributed AMR Fleet Coordination
+# 🤖 MOSAIC — Distributed AMR Fleet Coordination
 
 > **Edge-AI Based Distributed Fleet Coordination System for Autonomous Mobile Robots (AMRs) in Smart Warehouses.**
-> Built for the **Bharat Electronics Limited (BEL)** problem statement — Smart India Hackathon (SIH).
 
 ![Status](https://img.shields.io/badge/status-active-10b981) ![Coordination](https://img.shields.io/badge/coordination-distributed_edge--AI-00a3e0) ![Safety](https://img.shields.io/badge/collisions-zero-10b981) ![Deps](https://img.shields.io/badge/runtime_deps-0-002b49)
 
@@ -9,11 +8,11 @@
 
 ## 🔭 Overview
 
-EdgeFleet is a fully client-side, **zero-runtime-dependency** simulation and command console that demonstrates a fleet of Autonomous Mobile Robots coordinating **without a central brain**. Every robot is an autonomous edge node that plans its own path, negotiates shared space peer-to-peer, and scores its own tasks — while a **deterministic safety layer** guarantees zero collisions.
+MOSAIC is a fully client-side, **zero-runtime-dependency** simulation and command console that demonstrates a fleet of Autonomous Mobile Robots coordinating **without a central brain**. Every robot is an autonomous edge node that plans its own path, negotiates shared space peer-to-peer, and scores its own tasks — while a **deterministic safety layer** guarantees zero collisions.
 
-The system directly answers the BEL SIH success criteria:
+The system directly answers key industrial success criteria:
 
-| BEL Success Criterion | EdgeFleet Result |
+| Success Criterion | MOSAIC Result |
 | :--- | :--- |
 | **Zero inter-robot collisions** | ✅ Structurally guaranteed by the reservation protocol — verified live and in the benchmark |
 | **≥ 20% reduction in total task time vs traditional** | ✅ ~21% faster than the centralised stop-and-wait baseline in the built-in benchmark |
@@ -112,15 +111,15 @@ No backend, database or API keys required — everything runs in the browser.
 ## 📁 Project Structure
 
 ```
-bel-edgefleet-amr/
+mosaic-amr-fleet/
 ├── index.html              # App shell: sidebar, sim control bar, topbar
 ├── public/
-│   └── favicon.svg         # BEL AMR favicon
+│   └── favicon.svg         # AMR favicon
 └── src/
     ├── main.js             # Controller: navigation, controls, live update loop
     ├── pages.js            # 8 view renderers + live updaters
     ├── data.js             # Warehouse graph, fleet, task batch, config
-    ├── style.css           # BEL design system
+    ├── style.css           # MOSAIC design system
     └── engine/
         ├── graph.js        # Warehouse graph + dynamic costs
         ├── astar.js        # Local A* planner
@@ -142,7 +141,7 @@ Open **Telemetry & Benchmark → Run Benchmark**. The same fixed 20-task batch r
 - **Baseline — Centralised Stop-and-Wait:** central grant latency per segment, full stop at every intersection, static (congestion-blind) routing, nearest-robot dispatch.
 - **Proposed — Distributed Edge-AI:** local A*, congestion-aware routing, FIFO token pre-negotiation (no blanket stop), multi-factor AI dispatch, deadlock resolver.
 
-Representative result: **~21% lower total task time, ~45% less waiting, +13% throughput, and 0 collisions in both regimes** — meeting the BEL targets.
+Representative result: **~21% lower total task time, ~45% less waiting, +13% throughput, and 0 collisions in both regimes** — meeting MOSAIC performance targets.
 
 ---
 
@@ -158,5 +157,5 @@ The simulation continuously asserts these invariants; the collision counter is a
 ---
 
 <div align="center">
-  <strong>⚡ Built for BEL · Smart India Hackathon — distributed edge intelligence, deterministic safety ⚡</strong>
+  <strong>⚡ MOSAIC — distributed edge intelligence, deterministic safety ⚡</strong>
 </div>
