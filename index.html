@@ -3,46 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Caterpillar Autonomous Truck Fleet - Main Control Unit Dashboard for MineStar Command" />
-  <title>CAT MCU Dashboard | Autonomous Fleet Control</title>
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="description" content="BEL EdgeFleet — Edge-AI Distributed Fleet Coordination for Autonomous Mobile Robots (AMRs) in Smart Warehouses. Smart India Hackathon." />
+  <title>BEL EdgeFleet | Distributed AMR Coordination</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
-<body>
+<body class="dark">
   <div id="app">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo">
+          <div class="logo-mark"><i class="fas fa-robot"></i></div>
           <div class="logo-text">
-            <span class="logo-title autodump-logo">
-              <span class="a-letter">A<span class="triangle"></span></span>UTODUMP
-            </span>
+            <span class="logo-title">EDGE<span class="accent">FLEET</span></span>
+            <span class="logo-sub">BEL · Smart Warehouse</span>
           </div>
         </div>
         <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-angles-left"></i></button>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-section-label">MAIN</div>
-        <a class="nav-item active" data-page="dashboard"><i class="fas fa-gauge-high"></i><span>Dashboard</span></a>
-        <a class="nav-item" data-page="fleet"><i class="fas fa-truck-monster"></i><span>Fleet Monitor</span></a>
-        <a class="nav-item" data-page="v2v"><i class="fas fa-tower-broadcast"></i><span>V2V Comms</span></a>
-        <div class="nav-section-label">CONTROL</div>
-        <a class="nav-item" data-page="token"><i class="fas fa-shield-halved"></i><span>Token Protocol</span></a>
-        <a class="nav-item" data-page="killswitch"><i class="fas fa-circle-stop"></i><span>Kill Switch</span></a>
-        <a class="nav-item" data-page="supervision"><i class="fas fa-user-shield"></i><span>Supervision</span></a>
-        <div class="nav-section-label">SYSTEM</div>
-        <a class="nav-item" data-page="telemetry"><i class="fas fa-chart-line"></i><span>Telemetry</span></a>
+        <div class="nav-section-label">OVERVIEW</div>
+        <a class="nav-item active" data-page="dashboard"><i class="fas fa-diagram-project"></i><span>Warehouse Map</span></a>
+        <a class="nav-item" data-page="fleet"><i class="fas fa-robot"></i><span>Fleet Monitor</span></a>
+        <a class="nav-item" data-page="v2v"><i class="fas fa-tower-broadcast"></i><span>P2P Mesh</span></a>
+        <div class="nav-section-label">COORDINATION</div>
+        <a class="nav-item" data-page="token"><i class="fas fa-key"></i><span>FIFO Tokens</span></a>
+        <a class="nav-item" data-page="killswitch"><i class="fas fa-circle-stop"></i><span>Safety / E-Stop</span></a>
+        <a class="nav-item" data-page="supervision"><i class="fas fa-satellite-dish"></i><span>Perception</span></a>
+        <div class="nav-section-label">ANALYTICS</div>
+        <a class="nav-item" data-page="telemetry"><i class="fas fa-chart-line"></i><span>Telemetry & Benchmark</span></a>
         <a class="nav-item" data-page="settings"><i class="fas fa-sliders"></i><span>Settings</span></a>
       </nav>
       <div class="sidebar-footer">
         <div class="operator-badge">
           <div class="operator-avatar"><i class="fas fa-user-gear"></i></div>
           <div class="operator-info">
-            <span class="operator-name">Operator 01</span>
-            <span class="operator-role">Supervisor</span>
+            <span class="operator-name">Fleet Supervisor</span>
+            <span class="operator-role">Command Console</span>
           </div>
           <div class="status-dot online"></div>
         </div>
@@ -55,20 +55,26 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
-          <div class="breadcrumb"><span class="bc-page" id="bcPage">Dashboard</span></div>
+          <div class="breadcrumb"><span class="bc-page" id="bcPage">Warehouse Map</span></div>
         </div>
         <div class="topbar-center">
-          <div class="system-status-bar">
-            <div class="sys-indicator online"><i class="fas fa-satellite-dish"></i><span>GPS Lock</span></div>
-            <div class="sys-indicator online"><i class="fas fa-wifi"></i><span>Network</span></div>
-            <div class="sys-indicator warning"><i class="fas fa-cloud-sun"></i><span>Weather</span></div>
-            <div class="sys-indicator online"><i class="fas fa-database"></i><span>Telemetry</span></div>
+          <div class="sim-controls">
+            <button class="sim-btn primary" id="btnPlayPause" title="Play / Pause"><i class="fas fa-play"></i></button>
+            <button class="sim-btn" id="btnReset" title="Reset simulation"><i class="fas fa-rotate-left"></i></button>
+            <div class="speed-group" id="speedGroup">
+              <button data-speed="1">1×</button>
+              <button data-speed="2" class="active">2×</button>
+              <button data-speed="5">5×</button>
+              <button data-speed="10">10×</button>
+            </div>
+            <div class="sim-clock"><i class="fas fa-clock"></i> <span id="simClock">00:00</span></div>
           </div>
         </div>
         <div class="topbar-right">
-          <div class="topbar-clock" id="topbarClock"></div>
-          <button class="topbar-btn" id="alertsBtn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
-          <button class="topbar-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
+          <div class="mesh-pill" id="meshPill" title="P2P mesh"><i class="fas fa-wifi"></i> <span id="meshMsgs">0</span></div>
+          <button class="estop-btn" id="globalEstopTop" title="Global emergency stop"><i class="fas fa-hand"></i> E-STOP</button>
+          <button class="topbar-btn" id="alertsBtn"><i class="fas fa-bell"></i><span class="badge" id="alertBadge">0</span></button>
+          <button class="topbar-btn" id="themeToggle"><i class="fas fa-sun"></i></button>
         </div>
       </header>
 
@@ -78,7 +84,7 @@
 
     <!-- ALERTS PANEL -->
     <div class="alerts-panel" id="alertsPanel">
-      <div class="alerts-header"><h3><i class="fas fa-bell"></i> Alerts</h3><button id="closeAlerts"><i class="fas fa-xmark"></i></button></div>
+      <div class="alerts-header"><h3><i class="fas fa-bell"></i> Fleet Alerts</h3><button id="closeAlerts"><i class="fas fa-xmark"></i></button></div>
       <div class="alerts-list" id="alertsList"></div>
     </div>
   </div>

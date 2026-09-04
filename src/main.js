@@ -1,130 +1,162 @@
+// =============================================================================
+//  main.js — Application controller
+//
+//  Owns the Simulation instance, page navigation, the global chrome (sim
+//  controls, clock, mesh pill, alerts, theme) and the live update loop that
+//  re-renders the active page on every simulation tick.
+// =============================================================================
+
 import './style.css';
-import { alerts } from './data.js';
-import { renderDashboard, renderFleet, renderV2V, renderToken, renderKillSwitch, renderSupervision, renderTelemetry, renderSettings } from './pages.js';
+import { Simulation } from './engine/simulation.js';
+import { PAGES } from './pages.js';
 
-// ===== DOM REFS =====
-const sidebar = document.getElementById('sidebar');
-const sidebarToggle = document.getElementById('sidebarToggle');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const pageContainer = document.getElementById('pageContainer');
-const bcPage = document.getElementById('bcPage');
-const topbarClock = document.getElementById('topbarClock');
-const alertsBtn = document.getElementById('alertsBtn');
-const alertsPanel = document.getElementById('alertsPanel');
-const closeAlerts = document.getElementById('closeAlerts');
-const alertsList = document.getElementById('alertsList');
-const themeToggle = document.getElementById('themeToggle');
+const sim = new Simulation();
+window.__sim = sim; // handy for debugging in the console
 
-// ===== PAGES MAP =====
-const pages = {
-  dashboard: { title: 'Dashboard', render: renderDashboard },
-  fleet: { title: 'Fleet Monitor', render: renderFleet },
-  v2v: { title: 'V2V Communications', render: renderV2V },
-  token: { title: 'Token Protocol', render: renderToken },
-  killswitch: { title: 'Kill Switch', render: renderKillSwitch },
-  supervision: { title: 'Supervision Control', render: renderSupervision },
-  telemetry: { title: 'Telemetry & Analytics', render: renderTelemetry },
-  settings: { title: 'System Settings', render: renderSettings },
-};
+// ----- DOM refs -----
+const $ = (id) => document.getElementById(id);
+const sidebar = $('sidebar');
+const pageContainer = $('pageContainer');
+const bcPage = $('bcPage');
 
 let currentPage = 'dashboard';
+let currentUpdate = null;
 
-// ===== NAVIGATION =====
+// ---------------------------------------------------------------------------
+//  Navigation
+// ---------------------------------------------------------------------------
 function navigateTo(page) {
+  const def = PAGES[page];
+  if (!def) return;
   currentPage = page;
-  const p = pages[page];
-  if (!p) return;
-  bcPage.textContent = p.title;
-  pageContainer.innerHTML = p.render();
-  document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('active', n.dataset.page === page);
-  });
-  // Attach kill switch handler if on kill switch page
-  if (page === 'killswitch') attachKillSwitchHandlers();
-  // Close mobile sidebar
+  currentUpdate = null;
+  bcPage.textContent = def.title;
+  pageContainer.innerHTML = def.render(sim);
+  currentUpdate = def.mount(sim, pageContainer) || null;
+  if (currentUpdate) currentUpdate(sim);
+  document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.page === page));
   sidebar.classList.remove('mobile-open');
 }
 
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => navigateTo(item.dataset.page));
+document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', () => navigateTo(item.dataset.page)));
+
+// Delegated handler for per-AMR fault buttons rendered inside the Fleet view.
+pageContainer.addEventListener('click', (e) => {
+  const fb = e.target.closest('button[data-fail]');
+  if (fb && currentPage === 'fleet') sim.injectFailure(fb.dataset.fail);
 });
 
-// ===== SIDEBAR TOGGLE =====
-sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
-mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+// ---------------------------------------------------------------------------
+//  Sidebar
+// ---------------------------------------------------------------------------
+$('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+$('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
 
-// ===== CLOCK =====
-function updateClock() {
-  const now = new Date();
-  topbarClock.textContent = now.toLocaleTimeString('en-US', { hour12: false }) + ' IST';
-}
-setInterval(updateClock, 1000);
-updateClock();
+// ---------------------------------------------------------------------------
+//  Simulation controls
+// ---------------------------------------------------------------------------
+const btnPlay = $('btnPlayPause');
+btnPlay.addEventListener('click', () => {
+  sim.toggleRun();
+  syncPlayButton();
+});
+$('btnReset').addEventListener('click', () => {
+  sim.reset();
+  navigateTo(currentPage); // rebuild the active view against fresh state
+  syncPlayButton();
+});
+$('speedGroup').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-speed]');
+  if (!b) return;
+  sim.setSpeed(Number(b.dataset.speed));
+  $('speedGroup').querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+});
+$('globalEstopTop').addEventListener('click', () => {
+  if (sim.estopActive) sim.releaseEStop();
+  else sim.globalEStop();
+});
 
-// ===== ALERTS =====
-function renderAlerts() {
-  alertsList.innerHTML = alerts.map(a => `
-    <div class="alert-item ${a.type}">
-      <div class="alert-title">${a.title}</div>
-      <div class="alert-desc">${a.desc}</div>
-      <div class="alert-time"><i class="fas fa-clock"></i> ${a.time}</div>
-    </div>
-  `).join('');
+function syncPlayButton() {
+  const icon = btnPlay.querySelector('i');
+  icon.className = sim.running ? 'fas fa-pause' : 'fas fa-play';
+  btnPlay.classList.toggle('paused', !sim.running);
 }
-alertsBtn.addEventListener('click', () => {
+
+// ---------------------------------------------------------------------------
+//  Alerts panel
+// ---------------------------------------------------------------------------
+const alertsPanel = $('alertsPanel');
+let lastSeenAlertT = 0;
+$('alertsBtn').addEventListener('click', () => {
   alertsPanel.classList.toggle('open');
-  renderAlerts();
-});
-closeAlerts.addEventListener('click', () => alertsPanel.classList.remove('open'));
-
-// ===== THEME TOGGLE =====
-themeToggle.addEventListener('click', () => {
-  document.body.classList.toggle('light');
-  const icon = themeToggle.querySelector('i');
-  icon.classList.toggle('fa-moon');
-  icon.classList.toggle('fa-sun');
-});
-
-// ===== KILL SWITCH LOGIC =====
-function attachKillSwitchHandlers() {
-  const killBtn = document.getElementById('globalKillBtn');
-  const killStatus = document.getElementById('killStatus');
-  if (!killBtn) return;
-  killBtn.addEventListener('click', () => {
-    const isActive = killBtn.classList.toggle('active');
-    if (isActive) {
-      killStatus.textContent = 'ACTIVATED';
-      killStatus.className = 'card-badge danger';
-      killBtn.innerHTML = '<i class="fas fa-power-off"></i><span>ACTIVE</span><span style="font-size:10px;font-weight:400">CLICK TO RELEASE</span>';
-    } else {
-      killStatus.textContent = 'ARMED';
-      killStatus.className = 'card-badge danger';
-      killBtn.innerHTML = '<i class="fas fa-power-off"></i><span>E-STOP</span><span style="font-size:10px;font-weight:400">ALL UNITS</span>';
-    }
-  });
-}
-
-// ===== TOGGLE LOGGING =====
-document.addEventListener('change', (e) => {
-  if (e.target.dataset.toggle) {
-    const name = e.target.dataset.toggle;
-    const state = e.target.checked;
-    console.log(`[MCU] Toggle: ${name} → ${state ? 'ON' : 'OFF'}`);
+  if (alertsPanel.classList.contains('open')) {
+    lastSeenAlertT = sim.time;
+    renderAlerts();
+    updateAlertBadge();
   }
 });
+$('closeAlerts').addEventListener('click', () => alertsPanel.classList.remove('open'));
 
-// ===== LIVE DATA SIMULATION =====
-function simulateMapMovement() {
-  if (currentPage !== 'dashboard') return;
-  const mapTrucks = document.querySelectorAll('.map-truck');
-  mapTrucks.forEach(t => {
-    const curTop = parseFloat(t.style.top);
-    const curLeft = parseFloat(t.style.left);
-    t.style.top = (curTop + (Math.random() - 0.5) * 3) + '%';
-    t.style.left = (curLeft + (Math.random() - 0.5) * 3) + '%';
-  });
+function renderAlerts() {
+  const list = $('alertsList');
+  list.innerHTML = sim.alerts.length
+    ? sim.alerts
+        .map(
+          (a) => `<div class="alert-item ${a.type}"><div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div><div class="alert-time"><i class="fas fa-clock"></i> T+${a.time}</div></div>`,
+        )
+        .join('')
+    : '<div class="alerts-empty">No alerts — fleet nominal.</div>';
 }
-setInterval(simulateMapMovement, 3000);
 
-// ===== INIT =====
+function updateAlertBadge() {
+  const badge = $('alertBadge');
+  const n = sim.alerts.filter((a) => a.t > lastSeenAlertT).length;
+  badge.textContent = n;
+  badge.hidden = n === 0;
+}
+
+// ---------------------------------------------------------------------------
+//  Theme
+// ---------------------------------------------------------------------------
+$('themeToggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  const icon = $('themeToggle').querySelector('i');
+  icon.className = document.body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+});
+
+// ---------------------------------------------------------------------------
+//  Global chrome refresh + live page update (driven by the sim tick)
+// ---------------------------------------------------------------------------
+function refreshChrome() {
+  $('simClock').textContent = clock(sim.time / 1000);
+  $('meshMsgs').textContent = sim.bus.sent;
+  const est = $('globalEstopTop');
+  est.classList.toggle('active', !!sim.estopActive);
+  if (alertsPanel.classList.contains('open')) renderAlerts();
+  updateAlertBadge();
+}
+
+sim.subscribe(() => {
+  if (currentUpdate) {
+    try {
+      currentUpdate(sim);
+    } catch (err) {
+      console.error('page update error', err);
+    }
+  }
+  refreshChrome();
+});
+
+function clock(s) {
+  const m = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+}
+
+// ---------------------------------------------------------------------------
+//  Boot
+// ---------------------------------------------------------------------------
 navigateTo('dashboard');
+sim.start();
+syncPlayButton();
