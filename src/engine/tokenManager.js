@@ -19,6 +19,7 @@ export class TokenManager {
     this.log = []; // rolling transaction log for the UI
     this.grantsTotal = 0;
     this.revokesTotal = 0;
+    this.loggingEnabled = true; // gated by the "Audit Logging" operator setting
 
     for (const z of zones) {
       this.zones.set(z.id, {
@@ -102,7 +103,7 @@ export class TokenManager {
    * dead-man lease. `isAlive(amrId)` lets the engine ask the world whether a
    * holder is still making progress.
    */
-  update(now, isAlive) {
+  update(now, isAlive, deadmanEnabled = true) {
     for (const z of this.zones.values()) {
       // Dead-man enforcement: a *live* holder proves progress with a heartbeat
       // every tick, so it never loses its token while crossing. Only a holder
@@ -111,8 +112,10 @@ export class TokenManager {
       // backstop for a holder that somehow stops heartbeating.
       if (z.holder) {
         const silentFor = z.lastSeenActive != null ? now - z.lastSeenActive : 0;
-        const stalledSilent = z.lastSeenActive != null && silentFor > this.config.deadmanMs;
-        const leaseExpired = z.lastSeenActive != null && silentFor > z.leaseMs;
+        const stalledSilent = deadmanEnabled && z.lastSeenActive != null && silentFor > this.config.deadmanMs;
+        const leaseExpired = deadmanEnabled && z.lastSeenActive != null && silentFor > z.leaseMs;
+        // A genuinely dead/failed holder is always revoked (hard safety), even
+        // with dead-man release disabled — a faulted robot must never lock a zone.
         const dead = isAlive ? !isAlive(z.holder) : false;
         if (dead || stalledSilent || leaseExpired) {
           this._log(now, z.holder, z, dead ? 'revoked (dead-man)' : 'revoked (stall)');
@@ -152,6 +155,7 @@ export class TokenManager {
   }
 
   _log(now, amrId, zone, status) {
+    if (this.loggingEnabled === false) return;
     this.log.unshift({
       t: now,
       time: fmtClock(now),

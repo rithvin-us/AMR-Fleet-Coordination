@@ -75,7 +75,7 @@ function buildWarehouseSVG(sim, interactive) {
     } else {
       const r = isJunc ? 1.4 : 2.4;
       const labelY = isJunc ? n.y - 2.2 : n.y + 4.8;
-      const label = isJunc ? n.id : n.label.replace(/(Charge Dock|Rack|Pick Stn|Pack Line|Dispatch Dock) /, (m, w) => ({ 'Charge Dock': '⚡ C', Rack: 'RACK ', 'Pick Stn': 'PICK ', 'Pack Line': 'PACK ', 'Dispatch Dock': 'DROP ' }[w]));
+      const label = isJunc ? n.id : n.label.replace(/(Charge Dock|Rack|Pick Stn|Pack Line|Dispatch Dock) /, (m, w) => ({ 'Charge Dock': 'CHRG ', Rack: 'RACK ', 'Pick Stn': 'PICK ', 'Pack Line': 'PACK ', 'Dispatch Dock': 'DROP ' }[w]));
       nodes += `<g class="wh-node-group">
         <circle class="wh-node wh-node-${n.type}" data-id="${n.id}" cx="${n.x}" cy="${n.y}" r="${r}"/>
         <text class="wh-node-label ${isJunc ? 'junc-label' : ''}" x="${n.x}" y="${labelY}">${esc(label)}</text>
@@ -85,7 +85,7 @@ function buildWarehouseSVG(sim, interactive) {
 
   const facilityOverlays = `
     <!-- Building Perimeter -->
-    <rect class="wh-bg-grid" x="2" y="2" width="156" height="96" rx="3" fill="none" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2 2"/>
+    <rect class="wh-bg-grid" x="2" y="2" width="156" height="96" rx="3" fill="none" stroke="#30363d" stroke-width="0.5" stroke-dasharray="2 2"/>
     
     <!-- Rack Zone Alpha -->
     <g class="wh-facility-zone">
@@ -223,369 +223,279 @@ export const dashboard = {
   render(sim) {
     return `
     <div class="scada-console-wrapper">
-    <!-- MAIN 3-COLUMN SCADA DASHBOARD LAYOUT -->
-    <div class="scada-dashboard-grid mb-14">
 
-      <!-- LEFT COLUMN: FLEET OVERVIEW & ACTIVE MISSIONS -->
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <!-- Fleet Overview -->
-        <div class="card">
-          <div class="card-header" style="padding:10px 12px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-layer-group"></i> FLEET OVERVIEW</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0">
-            <div class="scada-metric-tile" style="border-left:3px solid #10b981">
-              <div class="scada-metric-lbl">Total Assets</div>
-              <div class="scada-metric-val" style="color:#10b981">39</div>
-            </div>
-            <div class="scada-metric-tile" style="border-left:3px solid #38bdf8">
-              <div class="scada-metric-lbl">Available</div>
-              <div class="scada-metric-val" style="color:#38bdf8">29</div>
-            </div>
-            <div class="scada-metric-tile" style="border-left:3px solid #f59e0b">
-              <div class="scada-metric-lbl">In Mission</div>
-              <div class="scada-metric-val" style="color:#fbbf24">8</div>
-            </div>
-            <div class="scada-metric-tile" style="border-left:3px solid #ea580c">
-              <div class="scada-metric-lbl">Charging</div>
-              <div class="scada-metric-val" style="color:#f97316">2</div>
-            </div>
-          </div>
+      <!-- LIVE KPI COMMAND STRIP — every value below is live from the simulation -->
+      <div class="card mb-14" style="padding:12px 14px">
+        <div class="card-header" style="margin-bottom:10px;padding-bottom:8px">
+          <div class="card-title"><i class="fas fa-chart-line"></i> Live Fleet Command KPIs</div>
+          <span class="card-badge success" id="kpiModeBadge">DISTRIBUTED EDGE-AI</span>
         </div>
-
-        <!-- Active Missions Roster -->
-        <div class="card" style="flex:1">
-          <div class="card-header" style="padding:10px 12px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-list-check"></i> ACTIVE MISSIONS</div>
-            <span style="color:#64748b;font-size:12px"><i class="fas fa-ellipsis"></i></span>
-          </div>
-          <div style="overflow-y:auto;max-height:310px">
-            <table class="active-missions-table">
-              <thead>
-                <tr>
-                  <th>ID <i class="fas fa-arrows-up-down" style="font-size:8px"></i></th>
-                  <th>Destination</th>
-                  <th>Progress</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="color:#10b981;font-weight:700">AMR-204</td>
-                  <td>Aisle B4</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:88%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#38bdf8;font-weight:700">AGV-158</td>
-                  <td>Aisle B1</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:82%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#10b981;font-weight:700">AMR-204</td>
-                  <td>Aisle B4</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:71%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#38bdf8;font-weight:700">AGV-198</td>
-                  <td>Aisle B3</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:64%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#38bdf8;font-weight:700">AGV-158</td>
-                  <td>Aisle B6</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:52%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#10b981;font-weight:700">AMR-103</td>
-                  <td>Aisle B6</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-cyan" style="width:45%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#38bdf8;font-weight:700">AGV-167</td>
-                  <td>Aisle B5</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:34%"></div></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color:#38bdf8;font-weight:700">AGV-188</td>
-                  <td>Aisle B31</td>
-                  <td>
-                    <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:20%"></div></div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Zone 4 Utilization -->
-        <div class="card">
-          <div class="card-header" style="padding:8px 12px">
-            <div class="card-title" style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">ZONE 4 UTILIZATION</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:8px;text-anchor:middle;text-align:center">
-              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">AMRs</div>
-              <div style="font-size:18px;font-weight:800;color:#10b981;font-family:var(--font-display)">18</div>
-            </div>
-            <div style="background:rgba(2,132,199,0.1);border:1px solid rgba(2,132,199,0.3);border-radius:4px;padding:8px;text-align:center">
-              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">AGVs</div>
-              <div style="font-size:18px;font-weight:800;color:#38bdf8;font-family:var(--font-display)">12</div>
-            </div>
-            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:4px;padding:8px;text-align:center">
-              <div style="font-size:9px;color:#94a3b8;font-family:var(--font-mono)">Forklifts</div>
-              <div style="font-size:18px;font-weight:800;color:#fbbf24;font-family:var(--font-display)">9</div>
-            </div>
-          </div>
+        <div class="kpi-strip" id="kpiStrip">
+          ${kpiMini('kFleet', 'Fleet Size', '#2f81f7')}
+          ${kpiMini('kActive', 'In Mission', '#3fb950')}
+          ${kpiMini('kAvail', 'Available', '#58a6ff')}
+          ${kpiMini('kCharging', 'Charging', '#d29922')}
+          ${kpiMini('kFaults', 'Faults', '#f85149')}
+          ${kpiMini('kBattery', 'Avg Battery', '#3fb950', '%')}
+          ${kpiMini('kUtil', 'Utilisation', '#2f81f7', '%')}
+          ${kpiMini('kCompleted', 'Tasks Done', '#3fb950')}
+          ${kpiMini('kThroughput', 'Throughput', '#58a6ff', '/min')}
+          ${kpiMini('kAvgTime', 'Avg Task', '#d29922', 's')}
+          ${kpiMini('kWait', 'Total Wait', '#d29922', 's')}
+          ${kpiMini('kCollisions', 'Collisions', '#3fb950')}
+          ${kpiMini('kDeadlock', 'Deadlocks', '#2f81f7')}
+          ${kpiMini('kAvoid', 'Avoid. Adv', '#58a6ff')}
+          ${kpiMini('kTokens', 'Tokens Held', '#d29922')}
+          ${kpiMini('kMesh', 'Mesh Link', '#38e0ff', '%')}
+          ${kpiMini('kCongest', 'Congestion', '#f85149')}
+          ${kpiMini('kReroutes', 'Reroutes', '#58a6ff')}
         </div>
       </div>
 
-      <!-- CENTER COLUMN: MAIN WEBGL 3D DIGITAL TWIN VIEWPORT -->
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="card" style="padding:0;overflow:hidden;position:relative;background:#ffffff;border:1px solid #d0d7de;box-shadow:0 1px 3px rgba(31,35,40,0.12)">
-          <div class="card-header" style="padding:10px 14px;background:#f6f8fa;border-bottom:1px solid #d0d7de">
-            <div class="card-title" style="font-size:12px;color:#0969da;font-family:var(--font-display);letter-spacing:0.8px">
-              <i class="fas fa-cube" style="color:#0969da"></i> GLOBAL LOGISTICS HUB - ZONE 4
+      <!-- MAIN 3-COLUMN SCADA DASHBOARD LAYOUT -->
+      <div class="scada-dashboard-grid mb-14">
+
+        <!-- LEFT COLUMN: FLEET OVERVIEW & ACTIVE MISSIONS -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:8px">
+              <div class="card-title"><i class="fas fa-layer-group"></i> Fleet Overview</div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <div class="speed-group" id="viewModeGroup">
-                <button id="btnMode2D"><i class="fas fa-border-all"></i> 2D Plan</button>
-                <button class="active" id="btnMode3D"><i class="fas fa-cube" style="color:var(--accent)"></i> 3D Digital Twin</button>
-                <button id="btnOpenCustomizer"><i class="fas fa-sliders" style="color:var(--warning)"></i> Customize Map</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div class="scada-metric-tile" style="border-left:3px solid #3fb950">
+                <div class="scada-metric-lbl">In Mission</div>
+                <div class="scada-metric-val" style="color:#3fb950" id="ovMission">0</div>
               </div>
-              <button class="btn btn-sm btn-icon" id="btnFullscreen3DHeader" style="color:#57606a"><i class="fas fa-expand"></i></button>
-              <button class="btn btn-sm btn-icon" style="color:#57606a"><i class="fas fa-gear"></i></button>
+              <div class="scada-metric-tile" style="border-left:3px solid #58a6ff">
+                <div class="scada-metric-lbl">Available</div>
+                <div class="scada-metric-val" style="color:#58a6ff" id="ovAvail">0</div>
+              </div>
+              <div class="scada-metric-tile" style="border-left:3px solid #d29922">
+                <div class="scada-metric-lbl">Charging</div>
+                <div class="scada-metric-val" style="color:#d29922" id="ovCharging">0</div>
+              </div>
+              <div class="scada-metric-tile" style="border-left:3px solid #f85149">
+                <div class="scada-metric-lbl">Faulted</div>
+                <div class="scada-metric-val" style="color:#f85149" id="ovFaults">0</div>
+              </div>
             </div>
           </div>
 
-          <div class="warehouse-container-box" style="position:relative">
-            <!-- 2D SVG Schematic View (Hidden by default in 3D mode) -->
-            <div id="svgCanvasWrap" style="display:none;">
-              ${buildWarehouseSVG(sim, true)}
+          <div class="card" style="flex:1">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:6px">
+              <div class="card-title"><i class="fas fa-list-check"></i> Active Missions</div>
+              <span class="card-badge info" id="missionCount">0 RUNNING</span>
+            </div>
+            <div style="overflow-y:auto;max-height:250px">
+              <table class="active-missions-table">
+                <thead><tr><th>AMR</th><th>Stage → Destination</th><th>Progress</th></tr></thead>
+                <tbody id="missionsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:6px">
+              <div class="card-title"><i class="fas fa-list"></i> Order Book</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="card-badge warning" id="taskCount">0</span>
+                <button class="btn btn-sm primary" id="btnOpenTaskModal" style="padding:3px 8px;font-size:10px"><i class="fas fa-plus"></i> New Task</button>
+              </div>
+            </div>
+            <div id="taskList" style="max-height:190px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN: MAIN 3D DIGITAL TWIN VIEWPORT -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card" style="padding:0;overflow:hidden;position:relative">
+            <div class="card-header" style="padding:10px 14px;background:var(--bg-panel);border-bottom:1px solid var(--border-color);margin:0">
+              <div class="card-title" style="font-size:12px;color:var(--accent);letter-spacing:0.8px">
+                <i class="fas fa-cube"></i> <span id="twinBranchName">Warehouse Digital Twin</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <div class="speed-group" id="viewModeGroup">
+                  <button id="btnMode2D"><i class="fas fa-border-all"></i> 2D Plan</button>
+                  <button class="active" id="btnMode3D"><i class="fas fa-cube"></i> 3D Twin</button>
+                  <button id="btnOpenCustomizer"><i class="fas fa-sliders"></i> Customize</button>
+                </div>
+                <button class="btn btn-sm" id="btnFullscreen3DHeader" style="padding:5px 8px"><i class="fas fa-expand"></i></button>
+              </div>
             </div>
 
-            <!-- 3D WebGL Digital Twin View Container -->
-            <div id="threeCanvasContainer" style="display:block;height:540px;background:#f1f5f9;">
-              <div class="scada-hud-overlay">
-                <div class="scada-hud-card">
-                  <i class="fas fa-microchip" style="color:#0969da;margin-right:4px"></i> <b>WEBGL 3D DIGITAL TWIN</b> | <span id="hud3DStats">60 FPS · Industrial SCADA Twin</span>
+            <div class="warehouse-container-box" style="position:relative">
+              <div id="svgCanvasWrap" style="display:none;background:var(--bg-panel)">
+                ${buildWarehouseSVG(sim, true)}
+              </div>
+              <div id="threeCanvasContainer" style="display:block;height:540px;background:#0a0e14;">
+                <div class="scada-hud-overlay">
+                  <div class="scada-hud-card">
+                    <i class="fas fa-microchip"></i> <b>WEBGL DIGITAL TWIN</b> | <span id="hud3DStats">Real-time 3D fleet · collision-free</span>
+                  </div>
+                  <div class="scada-preset-bar" id="cameraPresetBar">
+                    <button class="active" data-preset="3d"><i class="fas fa-camera"></i> Isometric</button>
+                    <button data-preset="iso"><i class="fas fa-vector-square"></i> 2.5D</button>
+                    <button data-preset="2d"><i class="fas fa-map"></i> Top</button>
+                  </div>
                 </div>
-                <div class="scada-preset-bar" id="cameraPresetBar">
-                  <button class="active" data-preset="3d"><i class="fas fa-camera"></i> Isometric</button>
-                  <button data-preset="iso"><i class="fas fa-vector-square"></i> 2.5D Top</button>
-                  <button data-preset="2d"><i class="fas fa-map"></i> Flat Plan</button>
+                <div class="scada-bottom-controls">
+                  <button class="scada-control-btn" id="btnViewAngle"><i class="fas fa-arrows-spin"></i> View Angle</button>
+                  <button class="scada-control-btn" id="btnZoomToggle"><i class="fas fa-magnifying-glass"></i> Zoom</button>
+                  <button class="scada-control-btn" id="btnLayersToggle"><i class="fas fa-layer-group"></i> Grid</button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <!-- Bottom Floating SCADA Control Bar -->
-              <div class="scada-bottom-controls">
-                <button class="scada-control-btn" id="btnViewAngle"><i class="fas fa-arrows-spin"></i> View Angle</button>
-                <button class="scada-control-btn" id="btnZoomToggle"><i class="fas fa-magnifying-glass"></i> Zoom</button>
-                <button class="scada-control-btn" id="btnLayersToggle"><i class="fas fa-layer-group"></i> Layers</button>
-              </div>
+          <div class="card" style="padding:10px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div class="card-title" style="font-size:11px"><i class="fas fa-flask"></i> Scenario & Fault Injection</div>
+              <span class="card-badge info" style="font-size:9px">LOCAL A* · FIFO TOKENS</span>
+            </div>
+            <div class="pill-row" id="scenarioBtns">
+              <button class="btn btn-sm" data-act="obstacle"><i class="fas fa-triangle-exclamation"></i> +1 Obstacle</button>
+              <button class="btn btn-sm" data-act="multi_obstacle"><i class="fas fa-road-barrier"></i> +3 Obstacles</button>
+              <button class="btn btn-sm" data-act="clear_obstacles"><i class="fas fa-rotate-left"></i> Clear All</button>
+              <button class="btn btn-sm" data-act="failure"><i class="fas fa-plug-circle-xmark"></i> Inject Fault</button>
+              <button class="btn btn-sm" data-act="lowbatt"><i class="fas fa-battery-quarter"></i> Low Battery</button>
+              <button class="btn btn-sm primary" data-act="task"><i class="fas fa-plus"></i> Dispatch Task</button>
             </div>
           </div>
         </div>
 
-        <!-- SCADA Quick Action / Scenario Controls -->
-        <div class="card" style="padding:10px 14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-flask"></i> SCADA SCENARIO & FAULT INJECTION</div>
-            <span class="card-badge info" style="font-size:9px">LOCAL A* & FIFO TOKENS</span>
-          </div>
-          <div class="pill-row" id="scenarioBtns">
-            <button class="btn btn-sm" data-act="obstacle"><i class="fas fa-triangle-exclamation"></i> +1 Obstacle</button>
-            <button class="btn btn-sm" data-act="multi_obstacle"><i class="fas fa-road-barrier"></i> +3 Obstacles</button>
-            <button class="btn btn-sm" data-act="clear_obstacles"><i class="fas fa-rotate-left"></i> Clear All</button>
-            <button class="btn btn-sm" data-act="failure"><i class="fas fa-plug-circle-xmark"></i> Inject Fault</button>
-            <button class="btn btn-sm" data-act="lowbatt"><i class="fas fa-battery-quarter"></i> Low Battery</button>
-            <button class="btn btn-sm primary" data-act="task"><i class="fas fa-plus"></i> Dispatch Task</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN: VEHICLE STATUS, ALERTS & TRAFFIC FLOW -->
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <!-- Vehicle Status Roster -->
-        <div class="card">
-          <div class="card-header" style="padding:10px 12px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-truck-ramp-box"></i> VEHICLE STATUS</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
-            <div style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:6px;padding:8px 10px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span style="color:#10b981;font-weight:800;font-family:var(--font-mono);font-size:12px">AMR-204</span>
-                <span style="color:#10b981;font-weight:700;font-family:var(--font-mono);font-size:11px">88%</span>
-                <span style="color:#10b981;font-weight:700;font-family:var(--font-mono);font-size:11px">88%</span>
-              </div>
-              <div class="scada-progress-bar"><div class="scada-progress-fill scada-progress-green" style="width:88%"></div></div>
-              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:#64748b;font-family:var(--font-mono)">
-                <span>Current Task</span>
-                <span>En Route</span>
-              </div>
+        <!-- RIGHT COLUMN: BATTERY STATUS, ALERTS & CONGESTION -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:6px">
+              <div class="card-title"><i class="fas fa-battery-quarter"></i> Battery &amp; Charge Status</div>
             </div>
+            <div class="mini-list" id="vehStatusList"></div>
+          </div>
 
-            <div style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:6px;padding:8px 10px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span style="color:#d97706;font-weight:800;font-family:var(--font-mono);font-size:12px">FL-012</span>
-                <span style="color:#d97706;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
-                <span style="color:#d97706;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
-              </div>
-              <div class="scada-progress-bar"><div class="scada-progress-fill" style="width:54%;background:linear-gradient(90deg,#d97706,#f59e0b)"></div></div>
-              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:#64748b;font-family:var(--font-mono)">
-                <span>Location</span>
-                <span>Charging</span>
-              </div>
+          <div class="card">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:6px">
+              <div class="card-title"><i class="fas fa-bell"></i> Notifications</div>
+              <span class="card-badge" id="notifCount" style="font-size:9px">0</span>
             </div>
+            <div id="notifList" style="max-height:190px;overflow-y:auto"></div>
           </div>
-        </div>
 
-        <!-- Notifications / Alerts -->
-        <div class="card">
-          <div class="card-header" style="padding:10px 12px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-bell"></i> NOTIFICATIONS/ALERTS</div>
-          </div>
-          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px;display:flex;align-items:center;gap:10px;color:#f87171;font-family:var(--font-mono);font-size:11px">
-            <i class="fas fa-triangle-exclamation" style="font-size:14px;color:#ef4444"></i>
-            <div>Aisle B4 Blocked - Re-routing</div>
-          </div>
-        </div>
-
-        <!-- Traffic Flow Map Thermal Heatmap Preview -->
-        <div class="card">
-          <div class="card-header" style="padding:10px 12px">
-            <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-fire-flame-curved"></i> TRAFFIC FLOW MAP</div>
-          </div>
-          <div style="background:#020617;border-radius:6px;padding:6px;height:120px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
-            <!-- Thermal Heatmap Canvas Graphic -->
-            <div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 40%, rgba(239,68,68,0.7), transparent 45%), radial-gradient(circle at 40% 60%, rgba(245,158,11,0.6), transparent 50%), radial-gradient(circle at 20% 30%, rgba(16,185,129,0.5), transparent 40%), linear-gradient(135deg, #040d1a 0%, #0b192c 100%);opacity:0.85"></div>
-            <div style="position:absolute;bottom:6px;left:8px;font-size:9px;color:#94a3b8;font-family:var(--font-mono);z-index:2">HIGH DENSITY CONGESTION CORRIDOR</div>
+          <div class="card">
+            <div class="card-header" style="padding-bottom:8px;margin-bottom:6px">
+              <div class="card-title"><i class="fas fa-fire-flame-curved"></i> Live Congestion</div>
+              <span class="card-badge" id="congestBadge" style="font-size:9px">CLEAR</span>
+            </div>
+            <div class="mini-list" id="congestList"></div>
           </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- SCADA TELEMETRY RING GAUGES CARD -->
-    <div class="card mb-14">
-      <div class="card-header">
-        <div class="card-title"><i class="fas fa-chart-pie"></i> Fleet SCADA Operational Telemetry Gauges</div>
-        <span class="card-badge success">REAL-TIME MONITORING</span>
-      </div>
-      <div class="grid-3" style="align-items:center;padding:10px 0;">
-        <div class="ring-gauge-wrap">
-          <svg class="ring-gauge-svg" viewBox="0 0 100 100">
-            <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
-            <circle class="ring-gauge-fill" id="ringUtilization" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="60"/>
-            <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValUtil">75%</text>
-          </svg>
-          <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">Fleet Utilization</div>
-        </div>
-        <div class="ring-gauge-wrap">
-          <svg class="ring-gauge-svg" viewBox="0 0 100 100">
-            <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
-            <circle class="ring-gauge-fill" id="ringThroughput" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="90" stroke="#10b981"/>
-            <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValTput">0.0</text>
-          </svg>
-          <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">Throughput / Min</div>
-        </div>
-        <div class="ring-gauge-wrap">
-          <svg class="ring-gauge-svg" viewBox="0 0 100 100">
-            <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
-            <circle class="ring-gauge-fill" id="ringMesh" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="0" stroke="#00f2ff"/>
-            <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValMesh">100%</text>
-          </svg>
-          <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">P2P Mesh Connectivity</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOWER SCADA TELEMETRY DISPLAY -->
-    <div class="card mb-14">
-      <div class="card-header">
-        <div class="card-title"><i class="fas fa-microchip"></i> AMR Fleet Edge Telemetry Roster</div>
-        <div style="display:flex;gap:12px;align-items:center">
-          <span class="hint" style="margin:0"><i class="fas fa-tower-broadcast"></i> 10 Hz LIVE TELEMETRY</span>
-          <span class="card-badge success">SYSTEM NOMINAL</span>
-        </div>
-      </div>
-      <div class="grid-4" id="dashFleetGrid" style="gap:10px"></div>
-    </div>
-
-    <div class="grid-2 mb-14">
-      <div class="card">
+      <!-- SCADA TELEMETRY RING GAUGES -->
+      <div class="card mb-14">
         <div class="card-header">
-          <div class="card-title"><i class="fas fa-key"></i> FIFO Intersection Token Locks</div>
-          <span class="card-badge warning" id="dashTokCount">0 ZONES HELD</span>
+          <div class="card-title"><i class="fas fa-chart-pie"></i> Fleet Operational Telemetry Gauges</div>
+          <span class="card-badge success">REAL-TIME MONITORING</span>
         </div>
-        <div id="dashTokenGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+        <div class="grid-3" style="align-items:center;padding:10px 0;">
+          <div class="ring-gauge-wrap">
+            <svg class="ring-gauge-svg" viewBox="0 0 100 100">
+              <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
+              <circle class="ring-gauge-fill" id="ringUtilization" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke="#2f81f7"/>
+              <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValUtil">0%</text>
+            </svg>
+            <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">Fleet Utilisation</div>
+          </div>
+          <div class="ring-gauge-wrap">
+            <svg class="ring-gauge-svg" viewBox="0 0 100 100">
+              <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
+              <circle class="ring-gauge-fill" id="ringThroughput" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke="#3fb950"/>
+              <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValTput">0.0</text>
+            </svg>
+            <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">Throughput / Min</div>
+          </div>
+          <div class="ring-gauge-wrap">
+            <svg class="ring-gauge-svg" viewBox="0 0 100 100">
+              <circle class="ring-gauge-bg" cx="50" cy="50" r="40"/>
+              <circle class="ring-gauge-fill" id="ringMesh" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="0" stroke="#38e0ff"/>
+              <text class="ring-gauge-val" x="50" y="55" text-anchor="middle" transform="rotate(90 50 50)" id="ringValMesh">100%</text>
+            </svg>
+            <div style="font-size:11px;font-weight:700;margin-top:6px;font-family:var(--font-mono)">P2P Mesh Connectivity</div>
+          </div>
+        </div>
       </div>
-      <div class="card">
+
+      <!-- AMR FLEET EDGE TELEMETRY ROSTER -->
+      <div class="card mb-14">
         <div class="card-header">
-          <div class="card-title"><i class="fas fa-tower-broadcast"></i> P2P Mesh Gossip Traffic</div>
-          <span class="card-badge success">GOSSIP BUS ACTIVE</span>
+          <div class="card-title"><i class="fas fa-microchip"></i> AMR Fleet Edge Telemetry Roster</div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span class="hint" style="margin:0"><i class="fas fa-tower-broadcast"></i> 10 Hz LIVE TELEMETRY</span>
+            <span class="card-badge success" id="rosterBadge">SYSTEM NOMINAL</span>
+          </div>
         </div>
-        <div class="msg-feed" id="dashMsgFeed" style="max-height:220px;overflow-y:auto"></div>
+        <div class="grid-4" id="dashFleetGrid" style="gap:10px"></div>
       </div>
-    </div>
-    
-    <!-- Map Customizer Drawer Host -->
-    <div id="customizerDrawerHost"></div>
 
-    <!-- TASK CREATOR & MODIFIER MODAL -->
-    <div class="task-modal-overlay" id="taskModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(4,13,26,0.8);backdrop-filter:blur(6px);z-index:2000;align-items:center;justify-content:center;">
-      <div class="task-modal-card" style="background:var(--navy);border:1px solid rgba(0,242,255,0.3);border-radius:8px;width:420px;padding:20px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.6);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px">
-          <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:#00f2ff;" id="taskModalTitle">
-            <i class="fas fa-tasks"></i> Dispatch & Modify Custom Task
+      <div class="grid-2 mb-14">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-key"></i> FIFO Intersection Token Locks</div>
+            <span class="card-badge warning" id="dashTokCount">0 ZONES HELD</span>
           </div>
-          <button class="btn btn-sm btn-icon" id="btnCloseTaskModal"><i class="fas fa-xmark"></i></button>
+          <div id="dashTokenGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
         </div>
-
-        <input type="hidden" id="taskEditId" value="">
-
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div>
-            <label style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">PICKUP NODE TARGET</label>
-            <select id="taskPickupSelect" class="select-sm" style="margin-top:4px"></select>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-tower-broadcast"></i> P2P Mesh Gossip Traffic</div>
+            <span class="card-badge success">GOSSIP BUS ACTIVE</span>
           </div>
-          <div>
-            <label style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">DROPOFF NODE TARGET</label>
-            <select id="taskDropoffSelect" class="select-sm" style="margin-top:4px"></select>
+          <div class="msg-feed" id="dashMsgFeed" style="max-height:220px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- Map Customizer Drawer Host -->
+      <div id="customizerDrawerHost"></div>
+
+      <!-- TASK CREATOR & MODIFIER MODAL -->
+      <div class="task-modal-overlay" id="taskModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,0.82);backdrop-filter:blur(6px);z-index:2000;align-items:center;justify-content:center;">
+        <div class="task-modal-card" style="background:var(--bg-secondary);border:1px solid var(--accent);border-radius:8px;width:420px;padding:20px;color:var(--text-primary);box-shadow:0 10px 40px rgba(0,0,0,0.6);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--border-color);padding-bottom:8px">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--accent);" id="taskModalTitle">
+              <i class="fas fa-list-check"></i> Dispatch &amp; Modify Task
+            </div>
+            <button class="btn btn-sm" id="btnCloseTaskModal" style="padding:3px 7px"><i class="fas fa-xmark"></i></button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input type="hidden" id="taskEditId" value="">
+          <div style="display:flex;flex-direction:column;gap:12px;">
             <div>
-              <label style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">PRIORITY LEVEL</label>
-              <select id="taskPrioritySelect" class="select-sm" style="margin-top:4px">
-                <option value="1">P1 — Critical / Urgent</option>
-                <option value="2" selected>P2 — High Priority</option>
-                <option value="3">P3 — Standard Priority</option>
-              </select>
+              <label style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">PICKUP NODE TARGET</label>
+              <select id="taskPickupSelect" class="select-sm" style="margin-top:4px"></select>
             </div>
             <div>
-              <label style="font-size:10px;color:#94a3b8;font-family:var(--font-mono)">LOAD WEIGHT (KG)</label>
-              <input type="number" id="taskLoadKg" class="input-sm" value="180" min="10" max="1000" style="margin-top:4px">
+              <label style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">DROPOFF NODE TARGET</label>
+              <select id="taskDropoffSelect" class="select-sm" style="margin-top:4px"></select>
             </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <label style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">PRIORITY LEVEL</label>
+                <select id="taskPrioritySelect" class="select-sm" style="margin-top:4px">
+                  <option value="1">P1 — Critical / Urgent</option>
+                  <option value="2" selected>P2 — High Priority</option>
+                  <option value="3">P3 — Standard Priority</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">LOAD WEIGHT (KG)</label>
+                <input type="number" id="taskLoadKg" class="input-sm" value="180" min="10" max="1000" style="margin-top:4px">
+              </div>
+            </div>
+            <button class="btn primary btn-sm w-full" id="btnSaveTask" style="margin-top:10px;padding:8px"><i class="fas fa-check"></i> Save &amp; Dispatch Order</button>
           </div>
-
-          <button class="btn btn-primary btn-sm w-full" id="btnSaveTask" style="margin-top:10px;padding:8px"><i class="fas fa-check"></i> Save & Dispatch Order</button>
         </div>
       </div>
-    </div>
     </div>`;
   },
+
   mount(sim, root) {
     // 1. Initialize 3D WebGL Digital Twin Engine
     const threeContainer = root.querySelector('#threeCanvasContainer');
@@ -820,54 +730,72 @@ export const dashboard = {
     });
 
     return function update(sim) {
-      // Update 2D SVG
-      updateWarehouse(root, sim);
-
-      // Update 3D WebGL Digital Twin
-      if (threeMap) {
-        threeMap.update(sim);
-      }
-
-      // Update KPIs
       const k = sim.kpis();
-      setText(root, '#kpiCompleted', k.completed);
-      const coll = root.querySelector('#kpiCollisions');
-      if (coll) {
-        coll.textContent = k.collisions;
-        coll.classList.toggle('danger-text', k.collisions > 0);
-        coll.classList.toggle('safe', k.collisions === 0);
-      }
-      setText(root, '#kpiThroughput', num(k.throughput, 2));
-      const activeCount = sim.agents.filter((a) => a.status !== 'idle' && a.status !== 'charging' && a.status !== 'failed').length;
-      setText(root, '#kpiActive', `${activeCount}/${sim.agents.length}`);
-      setText(root, '#whBadge', sim.distributedMode ? 'DISTRIBUTED' : 'CENTRALISED');
 
-      // Update SCADA SVG Ring Gauges
-      const utilPct = Math.round((activeCount / Math.max(1, sim.agents.length)) * 100);
-      const ringUtil = root.querySelector('#ringUtilization');
-      if (ringUtil) {
-        ringUtil.style.strokeDashoffset = String(251.2 * (1 - utilPct / 100));
-      }
-      setText(root, '#ringValUtil', `${utilPct}%`);
+      // Live 2D SVG schematic + 3D WebGL digital twin
+      updateWarehouse(root, sim);
+      if (threeMap) threeMap.update(sim);
 
-      const ringTput = root.querySelector('#ringThroughput');
-      if (ringTput) {
-        const tVal = Math.min(100, (k.throughput / 15) * 100);
-        ringTput.style.strokeDashoffset = String(251.2 * (1 - tVal / 100));
-      }
-      setText(root, '#ringValTput', num(k.throughput, 1));
+      // --- KPI command strip (all live) ---
+      setText(root, '#kFleet', k.fleetSize);
+      setText(root, '#kActive', k.active);
+      setText(root, '#kAvail', k.available);
+      setText(root, '#kCharging', k.charging);
+      setText(root, '#kFaults', k.failed);
+      setText(root, '#kBattery', num(k.avgBattery, 0));
+      setText(root, '#kUtil', num(k.utilizationPct, 0));
+      setText(root, '#kCompleted', k.completed);
+      setText(root, '#kThroughput', num(k.throughput, 2));
+      setText(root, '#kAvgTime', num(k.avgTaskTime, 0));
+      setText(root, '#kWait', num(k.waitingTime, 0));
+      setText(root, '#kDeadlock', k.deadlocksResolved);
+      setText(root, '#kAvoid', k.avoidanceInterventions);
+      setText(root, '#kTokens', k.activeTokens);
+      setText(root, '#kMesh', num(k.meshConnectivityPct, 0));
+      setText(root, '#kCongest', num(k.congestionIndex, 2));
+      setText(root, '#kReroutes', k.reroutes);
+      const kColl = root.querySelector('#kCollisions');
+      if (kColl) { kColl.textContent = k.collisions; kColl.style.color = k.collisions > 0 ? 'var(--danger)' : 'var(--success)'; }
+      setText(root, '#kpiModeBadge', sim.distributedMode ? 'DISTRIBUTED EDGE-AI' : 'CENTRALISED BASELINE');
 
-      // Tasks roster with Edit & Cancel actions
+      // --- Fleet overview ---
+      setText(root, '#ovMission', k.active);
+      setText(root, '#ovAvail', k.available);
+      setText(root, '#ovCharging', k.charging);
+      setText(root, '#ovFaults', k.failed);
+
+      // --- Active missions ---
+      const missions = sim.agents.filter((a) => a.task && a.status !== 'failed');
+      setText(root, '#missionCount', `${missions.length} RUNNING`);
+      const mb = root.querySelector('#missionsBody');
+      if (mb) {
+        mb.innerHTML = missions.length
+          ? missions.map((a) => {
+              const phase = a.navigation.phase;
+              const stageLabel = { to_pickup: 'To pickup', loading: 'Loading', to_dropoff: 'Delivering', unloading: 'Unloading', to_charge: 'To charge', to_park: 'Parking' }[phase] || a.status;
+              const dest = phase === 'to_pickup' ? a.task.pickup : phase === 'to_dropoff' ? a.task.dropoff : (a.navigation.destinationNodeId || '—');
+              const stageP = { to_pickup: 0.18, loading: 0.4, to_dropoff: 0.68, unloading: 0.92 }[phase] ?? 0.05;
+              const intra = a.pose.targetNodeId ? a.pose.progress * 0.08 : 0;
+              const pct = Math.round(Math.min(0.99, stageP + intra) * 100);
+              const col = pct > 66 ? 'scada-progress-green' : 'scada-progress-cyan';
+              return `<tr>
+                <td style="color:var(--accent);font-weight:700">${short(a.id)}</td>
+                <td style="font-size:10px">${stageLabel} → <b>${dest}</b></td>
+                <td><div class="scada-progress-bar"><div class="scada-progress-fill ${col}" style="width:${pct}%"></div></div></td>
+              </tr>`;
+            }).join('')
+          : '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:14px">No active missions</td></tr>';
+      }
+
+      // --- Order book (queued / assigned tasks) with edit & cancel ---
       const tasks = sim.tasks.filter((t) => t.status !== 'completed').slice(0, 12);
       setText(root, '#taskCount', sim.tasks.length);
       const tl = root.querySelector('#taskList');
       if (tl) {
         tl.innerHTML = tasks.length
-          ? tasks
-              .map(
-                (t) => `
+          ? tasks.map((t) => `
             <div class="msg-row" style="display:flex;justify-content:space-between;align-items:center;padding:5px 4px">
-              <div style="flex:1">
+              <div style="flex:1;min-width:0">
                 <div class="msg-head">
                   <span class="accent-text" style="font-weight:700">${t.id}</span>
                   <span class="status-pill ${t.status === 'unassigned' ? 'waiting_traffic' : 'moving'}" style="font-size:8.5px">${t.status === 'unassigned' ? 'queued' : esc(t.assignedAmrId || '')}</span>
@@ -875,101 +803,161 @@ export const dashboard = {
                 <div class="msg-meta">${t.pickup} → ${t.dropoff} · ${t.loadKg}kg · P${t.priority}</div>
               </div>
               <div style="display:flex;gap:4px;margin-left:6px">
-                <button class="btn btn-sm btnEditTask" data-task-id="${t.id}" style="padding:1px 5px;font-size:9px" title="Modify Task Target"><i class="fas fa-pen"></i></button>
+                <button class="btn btn-sm btnEditTask" data-task-id="${t.id}" style="padding:1px 5px;font-size:9px" title="Modify Task"><i class="fas fa-pen"></i></button>
                 <button class="btn btn-sm btnCancelTask" data-task-id="${t.id}" style="padding:1px 5px;font-size:9px;color:var(--danger)" title="Cancel Task"><i class="fas fa-xmark"></i></button>
               </div>
-            </div>`,
-              )
-              .join('')
+            </div>`).join('')
           : '<div class="alerts-empty">Order book empty</div>';
       }
 
-      // Update AMR Fleet Telemetry Roster
-      const fg = root.querySelector('#dashFleetGrid');
-      if (fg) {
-        fg.innerHTML = sim.agents
-          .map((a) => {
-            const soc = a.battery.soc;
-            const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
-            const cargoStr = a.payload.isLoaded ? `<span class="accent-text"><i class="fas fa-box"></i> ${a.payload.currentLoadKg}kg</span>` : '<span class="muted">Empty</span>';
-            const speedStr = `${num(a.pose.velocity, 2)}m/s`;
-            const motorOk = a.health.motorState === 'nominal';
-            const lidarOk = a.health.lidarStatus === 'nominal';
-            const btnText = a.status === 'failed' ? 'Fault' : a.status === 'stopped' ? 'Resume' : 'Hold';
-            const btnClass = a.status === 'failed' ? '' : a.status === 'stopped' ? 'primary' : 'danger';
-
-            return `
-            <div class="card" style="padding:10px 12px;background:var(--bg-panel);margin:0">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span style="font-weight:800;font-family:var(--font-mono);font-size:12px;display:flex;align-items:center;gap:5px">
-                  <i class="fas fa-truck-ramp-box" style="color:var(--accent)"></i> ${a.id}
-                </span>
-                <span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span>
-              </div>
-              <div style="font-size:11px;line-height:1.4">
-                <div style="display:flex;justify-content:space-between"><span class="muted">Node</span><span class="mono" style="font-weight:600">${routeStr}</span></div>
-                <div style="display:flex;justify-content:space-between"><span class="muted">Speed / Cargo</span><span class="mono">${speedStr} · ${cargoStr}</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
-                  <span class="muted">Battery</span>
-                  ${batteryHTML(soc)}
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:4px;border-top:1px solid var(--border-color);font-size:10px">
-                  <span style="display:flex;gap:7px;align-items:center">
-                    <span title="Motor State" class="${motorOk ? 'safe' : 'danger-text'}"><i class="fas fa-microchip"></i> M</span>
-                    <span title="LiDAR Sensors" class="${lidarOk ? 'safe' : 'danger-text'}"><i class="fas fa-wave-square"></i> L</span>
-                    <span class="muted mono">${a.navigation.rerouteCount} reroutes</span>
-                  </span>
-                  <button class="btn ${btnClass}" data-dash-amr="${a.id}" style="padding:2px 6px;font-size:9.5px;height:20px" ${a.status === 'failed' ? 'disabled' : ''}>${btnText}</button>
-                </div>
-              </div>
-            </div>`;
-          })
-          .join('');
+      // --- Battery & charge status (lowest SoC first) ---
+      const vs = root.querySelector('#vehStatusList');
+      if (vs) {
+        const sorted = [...sim.agents].sort((a, b) => a.battery.soc - b.battery.soc).slice(0, 6);
+        vs.innerHTML = sorted.map((a) => {
+          const soc = a.battery.soc;
+          const col = soc > 55 ? 'var(--success)' : soc > 22 ? 'var(--warning)' : 'var(--danger)';
+          const tag = a.status === 'charging' ? 'charging' : a.status === 'failed' ? 'fault' : (STATUS_LABEL[a.status] || a.status);
+          return `<div class="mini-row">
+            <span class="mr-id" style="color:${col}">${short(a.id)}</span>
+            <span class="mr-bar"><span class="mr-fill" style="width:${Math.max(3, soc)}%;background:${col}"></span></span>
+            <span class="mr-val">${num(soc)}% · ${tag}</span>
+          </div>`;
+        }).join('');
       }
 
-      // Update Intersection Token Locks
+      // --- Notifications (real alert stream) ---
+      const nl = root.querySelector('#notifList');
+      if (nl) {
+        const alerts = sim.alerts.slice(0, 6);
+        setText(root, '#notifCount', sim.alerts.length);
+        nl.innerHTML = alerts.length
+          ? alerts.map((al) => `
+            <div class="notif-row ${al.type === 'critical' ? 'critical' : al.type === 'warning' ? 'warning' : 'info'}">
+              <i class="fas fa-${al.type === 'critical' ? 'triangle-exclamation' : 'circle-info'}" style="color:${al.type === 'critical' ? 'var(--danger)' : al.type === 'warning' ? 'var(--warning)' : 'var(--info)'};margin-top:1px"></i>
+              <div style="flex:1;min-width:0"><div class="nr-title">${esc(al.title)}</div><div class="nr-desc">${esc(al.desc)}</div></div>
+              <span class="nr-time">${al.time}</span>
+            </div>`).join('')
+          : '<div class="alerts-empty">No alerts — fleet nominal.</div>';
+      }
+
+      // --- Live congestion (busiest corridors from real occupancy) ---
+      const cl = root.querySelector('#congestList');
+      if (cl) {
+        const edges = [...sim.graph.edges.values()].map((e) => {
+          const occ = sim.edgeOccupants(e.key).size;
+          const wait = (sim.edgeWaiters.get(e.key) || new Map()).size;
+          return { e, load: (e.congestion - 1) + occ + wait, occ, wait, blocked: e.blocked };
+        }).sort((a, b) => b.load - a.load).slice(0, 5);
+        const anyLoad = edges.some((x) => x.load > 0.01 || x.blocked);
+        const badge = root.querySelector('#congestBadge');
+        if (badge) { badge.textContent = anyLoad ? 'ACTIVE' : 'CLEAR'; badge.className = 'card-badge ' + (anyLoad ? 'warning' : 'success'); }
+        cl.innerHTML = edges.map((x) => {
+          const pct = Math.min(100, Math.round((x.load / 3) * 100));
+          const col = x.blocked ? 'var(--danger)' : x.load > 1.5 ? 'var(--warning)' : 'var(--accent)';
+          return `<div class="mini-row">
+            <span class="mr-id" style="min-width:80px;font-size:9.5px">${x.e.a}–${x.e.b}</span>
+            <span class="mr-bar"><span class="mr-fill" style="width:${Math.max(3, pct)}%;background:${col}"></span></span>
+            <span class="mr-val">${x.blocked ? 'BLOCKED' : (x.occ + x.wait > 0 ? (x.occ + x.wait) + ' amr' : 'clear')}</span>
+          </div>`;
+        }).join('');
+      }
+
+      // --- Ring gauges ---
+      const ringUtil = root.querySelector('#ringUtilization');
+      if (ringUtil) ringUtil.style.strokeDashoffset = String(251.2 * (1 - k.utilizationPct / 100));
+      setText(root, '#ringValUtil', `${num(k.utilizationPct, 0)}%`);
+      const ringTput = root.querySelector('#ringThroughput');
+      if (ringTput) ringTput.style.strokeDashoffset = String(251.2 * (1 - Math.min(100, (k.throughput / 15) * 100) / 100));
+      setText(root, '#ringValTput', num(k.throughput, 1));
+      const ringMesh = root.querySelector('#ringMesh');
+      if (ringMesh) ringMesh.style.strokeDashoffset = String(251.2 * (1 - k.meshConnectivityPct / 100));
+      setText(root, '#ringValMesh', `${num(k.meshConnectivityPct, 0)}%`);
+
+      // --- Roster status badge ---
+      const rb = root.querySelector('#rosterBadge');
+      if (rb) {
+        rb.textContent = k.collisions > 0 ? 'RESERVATION VIOLATION' : k.failed > 0 ? `${k.failed} FAULT(S)` : 'SYSTEM NOMINAL';
+        rb.className = 'card-badge ' + (k.collisions > 0 ? 'danger' : k.failed > 0 ? 'warning' : 'success');
+      }
+
+      // --- AMR fleet telemetry roster (detailed cards) ---
+      const fg = root.querySelector('#dashFleetGrid');
+      if (fg) {
+        fg.innerHTML = sim.agents.map((a) => {
+          const soc = a.battery.soc;
+          const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
+          const cargoStr = a.payload.isLoaded ? `<span class="accent-text"><i class="fas fa-box"></i> ${a.payload.currentLoadKg}kg</span>` : '<span class="muted">Empty</span>';
+          const speedStr = `${num(a.pose.velocity, 2)}m/s`;
+          const motorOk = a.health.motorState === 'nominal';
+          const lidarOk = a.health.lidarStatus === 'nominal';
+          const btnText = a.status === 'failed' ? 'Fault' : a.status === 'stopped' ? 'Resume' : 'Hold';
+          const btnClass = a.status === 'failed' ? '' : a.status === 'stopped' ? 'primary' : 'danger';
+          return `
+          <div class="card" style="padding:10px 12px;background:var(--bg-panel);margin:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-weight:800;font-family:var(--font-mono);font-size:12px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-truck-ramp-box" style="color:var(--accent)"></i> ${a.id}
+              </span>
+              <span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span>
+            </div>
+            <div style="font-size:11px;line-height:1.4">
+              <div style="display:flex;justify-content:space-between"><span class="muted">Node</span><span class="mono" style="font-weight:600">${routeStr}</span></div>
+              <div style="display:flex;justify-content:space-between"><span class="muted">Speed / Cargo</span><span class="mono">${speedStr} · ${cargoStr}</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+                <span class="muted">Battery</span>
+                ${batteryHTML(soc)}
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:4px;border-top:1px solid var(--border-color);font-size:10px">
+                <span style="display:flex;gap:7px;align-items:center">
+                  <span title="Motor State" class="${motorOk ? 'safe' : 'danger-text'}"><i class="fas fa-microchip"></i> M</span>
+                  <span title="LiDAR Sensors" class="${lidarOk ? 'safe' : 'danger-text'}"><i class="fas fa-wave-square"></i> L</span>
+                  <span class="muted mono">${a.navigation.rerouteCount} reroutes</span>
+                </span>
+                <button class="btn ${btnClass}" data-dash-amr="${a.id}" style="padding:2px 6px;font-size:9.5px;height:20px" ${a.status === 'failed' ? 'disabled' : ''}>${btnText}</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // --- Intersection token locks ---
       const snap = sim.tokens.snapshot();
       setText(root, '#dashTokCount', `${snap.filter((z) => z.holder).length}/${snap.length} HELD`);
       const tg = root.querySelector('#dashTokenGrid');
       if (tg) {
-        tg.innerHTML = snap
-          .map((z) => {
-            const isHeld = !!z.holder;
-            const holderStr = isHeld
-              ? `<span class="fifo-slot holder" style="padding:2px 6px;font-size:10px"><span class="pos">•</span>${short(z.holder)}</span>`
-              : '<span class="fifo-empty" style="font-size:10px">clear</span>';
-            const qStr = z.queue.length
-              ? z.queue.map((e, i) => `<span class="fifo-slot" style="padding:2px 6px;font-size:10px"><span class="pos">${i + 1}</span>${short(e.amrId)}</span>`).join('')
-              : '';
-            return `
-            <div class="zone-card ${isHeld ? 'held' : ''}" style="padding:8px 10px">
-              <div class="zone-head" style="margin-bottom:4px">
-                <span class="zone-name" style="font-size:11px"><i class="fas fa-diamond-turn-right" style="color:var(--warning)"></i> ${z.name.replace('INT-', 'INT ')}</span>
-                <span class="card-badge ${isHeld ? 'danger' : 'success'}" style="font-size:8.5px">${isHeld ? 'OCCUPIED' : 'FREE'}</span>
-              </div>
-              <div class="fifo-queue" style="margin-top:4px">${holderStr}${qStr}</div>
-            </div>`;
-          })
-          .join('');
+        tg.innerHTML = snap.map((z) => {
+          const isHeld = !!z.holder;
+          const holderStr = isHeld
+            ? `<span class="fifo-slot holder" style="padding:2px 6px;font-size:10px"><span class="pos">•</span>${short(z.holder)}</span>`
+            : '<span class="fifo-empty" style="font-size:10px">clear</span>';
+          const qStr = z.queue.length
+            ? z.queue.map((e, i) => `<span class="fifo-slot" style="padding:2px 6px;font-size:10px"><span class="pos">${i + 1}</span>${short(e.amrId)}</span>`).join('')
+            : '';
+          return `
+          <div class="zone-card ${isHeld ? 'held' : ''}" style="padding:8px 10px">
+            <div class="zone-head" style="margin-bottom:4px">
+              <span class="zone-name" style="font-size:11px"><i class="fas fa-diamond-turn-right" style="color:var(--warning)"></i> ${esc(z.name)}</span>
+              <span class="card-badge ${isHeld ? 'danger' : 'success'}" style="font-size:8.5px">${isHeld ? 'OCCUPIED' : 'FREE'}</span>
+            </div>
+            <div class="fifo-queue" style="margin-top:4px">${holderStr}${qStr}</div>
+          </div>`;
+        }).join('');
       }
 
-      // Update Live P2P Mesh Feed
+      // --- Live P2P mesh gossip feed ---
       const mf = root.querySelector('#dashMsgFeed');
       if (mf) {
         const logs = sim.bus.log.slice(0, 10);
         mf.innerHTML = logs.length
-          ? logs
-              .map(
-                (m) => `
+          ? logs.map((m) => `
             <div class="msg-row" style="padding:4px 2px">
               <div class="msg-head">
                 <span class="accent-text" style="font-size:10.5px">${m.from} → ${m.to === 'BROADCAST' ? 'ALL' : m.to}</span>
                 <span class="msg-type ${m.type}">${m.type.replace('_', ' ')}</span>
               </div>
               <div class="msg-meta">${esc(m.summary)} · RSSI ${m.rssi}dBm</div>
-            </div>`,
-              )
-              .join('')
+            </div>`).join('')
           : '<div class="alerts-empty">No gossip messages</div>';
       }
     };
@@ -1236,7 +1224,7 @@ export const v2v = {
             <div class="card-title"><i class="fas fa-network-wired"></i> Real-Time Spatial Mesh Floor Plan</div>
             <span class="card-badge success"><i class="fas fa-tower-broadcast"></i> ADAPTIVE RF MESH</span>
           </div>
-          <div class="mesh-view" id="meshView" style="min-height:360px;position:relative;background:#ffffff;border:1px solid var(--border-color);overflow:hidden"></div>
+          <div class="mesh-view" id="meshView" style="min-height:360px;position:relative;background:var(--bg-panel);border:1px solid var(--border-color);overflow:hidden"></div>
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title"><i class="fas fa-scroll"></i> Live RF Packet Feed</div></div>
@@ -1287,7 +1275,7 @@ export const v2v = {
               linksSVG += `<line x1="${a1.pose.x.toFixed(1)}" y1="${a1.pose.y.toFixed(1)}" x2="${a2.pose.x.toFixed(1)}" y2="${a2.pose.y.toFixed(1)}" stroke="${strokeColor}" stroke-width="${isTx ? 0.9 : 0.4}" stroke-dasharray="1 1" opacity="${opacity}"/>`;
               const midX = (a1.pose.x + a2.pose.x) / 2;
               const midY = (a1.pose.y + a2.pose.y) / 2;
-              linksSVG += `<text x="${midX.toFixed(1)}" y="${midY.toFixed(1)}" fill="#475569" font-size="1.4" font-family="var(--font-mono)" text-anchor="middle">${rssi}dBm</text>`;
+              linksSVG += `<text x="${midX.toFixed(1)}" y="${midY.toFixed(1)}" fill="#8b98a8" font-size="1.4" font-family="var(--font-mono)" text-anchor="middle">${rssi}dBm</text>`;
             }
           }
         }
@@ -1636,12 +1624,14 @@ export const settings = {
           ${tog('congestionWeighting', 'Congestion-aware Routing', 'A* avoids busy corridors')}
           ${tog('dynamicRerouting', 'Dynamic Rerouting', 'Local A* replans around obstacles/traffic')}
           ${tog('deadlockResolver', 'Deadlock Resolver', 'Circular-wait detection + priority yield')}
+          ${tog('predictiveAvoidance', 'Predictive Avoidance', 'ADAS advisory: near-miss & deadlock-risk early warning')}
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title"><i class="fas fa-shield-halved"></i> Safety & Comms</div></div>
           ${tog('deadmanRelease', 'Dead-man Token Release', 'Revoke tokens from stalled holders')}
           ${tog('batteryAwareDispatch', 'Battery-aware Dispatch', 'Penalise low-SoC candidates')}
           ${tog('gossipBroadcast', 'P2P Gossip Broadcast', 'Heartbeats & obstacle alerts')}
+          ${tog('obstacleAutoClear', 'Obstacle Auto-clear', 'Transient obstacles self-heal after ~15 s')}
           ${tog('auditLogging', 'Audit Logging', 'Full token & task traceability')}
         </div>
       </div>
@@ -1691,6 +1681,10 @@ export const settings = {
 function kpiCard(color, icon, id, val, label) {
   return `<div class="card stat-card"><div class="stat-icon ${color}"><i class="fas ${icon}"></i></div>
     <div><div class="stat-value" id="${id}">${val}</div><div class="stat-label">${label}</div></div></div>`;
+}
+// Compact KPI tile for the dashboard command strip.
+function kpiMini(id, label, color, unit = '') {
+  return `<div class="kpi-mini" style="border-left-color:${color}"><div class="kv"><span id="${id}">—</span>${unit ? `<span class="ku">${unit}</span>` : ''}</div><div class="kl">${label}</div></div>`;
 }
 function setText(root, sel, val) {
   const el = root.querySelector(sel);
