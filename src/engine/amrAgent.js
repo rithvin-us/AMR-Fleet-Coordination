@@ -579,6 +579,8 @@ export class AMRAgent {
   //  Comms
   // ---------------------------------------------------------------------------
   _maybeBeacon(dt, world) {
+    // P2P gossip broadcast is operator-gated (Settings → P2P Gossip Broadcast).
+    if (world.settings && world.settings.gossipBroadcast === false) return;
     this._beaconAcc += dt;
     const period = 1 / this.config.heartbeatHz;
     if (this._beaconAcc >= period) {

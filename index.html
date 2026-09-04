@@ -7,10 +7,9 @@
   <title>MOSAIC | Distributed AMR Coordination</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
-<body class="light">
+<body class="night">
   <div id="app">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
@@ -32,16 +31,40 @@
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section-label">OVERVIEW</div>
-        <a class="nav-item active" data-page="dashboard"><i class="fas fa-diagram-project"></i><span>Warehouse Map</span></a>
-        <a class="nav-item" data-page="fleet"><i class="fas fa-truck-ramp-box"></i><span>Fleet Monitor</span></a>
-        <a class="nav-item" data-page="v2v"><i class="fas fa-tower-broadcast"></i><span>P2P Mesh</span></a>
+        <a class="nav-item active" data-page="dashboard" title="Live command centre: KPI strip, 2D schematic + 3D WebGL digital twin, order book and scenario controls">
+          <i class="fas fa-diagram-project"></i>
+          <span class="nav-text"><span class="nav-label">Warehouse Map</span><span class="nav-desc">KPIs · 2D + 3D twin</span></span>
+        </a>
+        <a class="nav-item" data-page="fleet" title="Per-AMR telemetry roster and single-vehicle inspector with direct movement commands">
+          <i class="fas fa-truck-ramp-box"></i>
+          <span class="nav-text"><span class="nav-label">Fleet Monitor</span><span class="nav-desc">Per-robot telemetry</span></span>
+        </a>
+        <a class="nav-item" data-page="v2v" title="Robot-to-robot peer mesh: live RF links, RSSI, latency and the gossip packet feed">
+          <i class="fas fa-tower-broadcast"></i>
+          <span class="nav-text"><span class="nav-label">P2P Mesh</span><span class="nav-desc">V2V RF network</span></span>
+        </a>
         <div class="nav-section-label">COORDINATION</div>
-        <a class="nav-item" data-page="token"><i class="fas fa-key"></i><span>FIFO Tokens</span></a>
-        <a class="nav-item" data-page="killswitch"><i class="fas fa-circle-stop"></i><span>Safety / E-Stop</span></a>
-        <a class="nav-item" data-page="supervision"><i class="fas fa-satellite-dish"></i><span>Perception</span></a>
+        <a class="nav-item" data-page="token" title="Deterministic FIFO intersection tokens: queues, holders and the transaction log">
+          <i class="fas fa-key"></i>
+          <span class="nav-text"><span class="nav-label">FIFO Tokens</span><span class="nav-desc">Intersection safety</span></span>
+        </a>
+        <a class="nav-item" data-page="killswitch" title="Global and per-AMR emergency stop, fault injection and recovery">
+          <i class="fas fa-circle-stop"></i>
+          <span class="nav-text"><span class="nav-label">Safety / E-Stop</span><span class="nav-desc">Emergency controls</span></span>
+        </a>
+        <a class="nav-item" data-page="supervision" title="Onboard perception: simulated LiDAR sweep and sensor health per robot">
+          <i class="fas fa-satellite-dish"></i>
+          <span class="nav-text"><span class="nav-label">Perception</span><span class="nav-desc">LiDAR &amp; sensors</span></span>
+        </a>
         <div class="nav-section-label">ANALYTICS</div>
-        <a class="nav-item" data-page="telemetry"><i class="fas fa-chart-line"></i><span>Telemetry & Benchmark</span></a>
-        <a class="nav-item" data-page="settings"><i class="fas fa-sliders"></i><span>Settings</span></a>
+        <a class="nav-item" data-page="telemetry" title="Live coordination KPIs and the baseline vs edge-AI head-to-head benchmark">
+          <i class="fas fa-chart-line"></i>
+          <span class="nav-text"><span class="nav-label">Telemetry &amp; Benchmark</span><span class="nav-desc">KPIs &amp; comparison</span></span>
+        </a>
+        <a class="nav-item" data-page="settings" title="Toggle coordination features and tune the AI scoring weights live">
+          <i class="fas fa-sliders"></i>
+          <span class="nav-text"><span class="nav-label">Settings</span><span class="nav-desc">Tune coordination</span></span>
+        </a>
       </nav>
       <div class="sidebar-footer">
         <div class="operator-badge">
@@ -81,7 +104,6 @@
           <div class="mesh-pill" id="meshPill" title="P2P mesh"><i class="fas fa-wifi"></i> <span id="meshMsgs">0</span></div>
           <button class="estop-btn" id="globalEstopTop" title="Global emergency stop"><i class="fas fa-hand"></i> E-STOP</button>
           <button class="topbar-btn" id="alertsBtn"><i class="fas fa-bell"></i><span class="badge" id="alertBadge">0</span></button>
-          <button class="topbar-btn" id="themeToggle"><i class="fas fa-sun"></i></button>
         </div>
       </header>
 

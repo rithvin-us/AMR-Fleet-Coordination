@@ -1,0 +1,46 @@
+name: CI
+
+# Continuous integration for the MOSAIC front-end. MOSAIC is a fully static,
+# client-side app (no backend service to test), so CI validates the coordination
+# engine head-less, enforces the icon/asset invariants, and proves a clean
+# production build on every push and pull request.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Lint · Test · Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Icon & asset invariants (SVG-only, no emoji, no FA CDN)
+        run: npm run check:icons
+
+      - name: Headless engine smoke + invariant test
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Upload production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: mosaic-dist
+          path: dist
+          retention-days: 7

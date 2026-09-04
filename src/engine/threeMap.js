@@ -14,6 +14,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+const DEG2RAD = Math.PI / 180;
+
 export class ThreeWarehouseMap {
   constructor(containerElement, onEdgeClick, onObjectSelect) {
     this.container = containerElement;
@@ -23,10 +25,10 @@ export class ThreeWarehouseMap {
     this.width = this.container.clientWidth || 800;
     this.height = this.container.clientHeight || 500;
 
-    // Scene & Renderer Setup
+    // Scene & Renderer Setup — night control-room aesthetic
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf1f5f9);
-    this.scene.fog = new THREE.FogExp2(0xf1f5f9, 0.002);
+    this.scene.background = new THREE.Color(0x0a0e14);
+    this.scene.fog = new THREE.FogExp2(0x0a0e14, 0.0016);
 
     this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 1, 1000);
     this.camera.position.set(0, 110, 115);
@@ -104,10 +106,15 @@ export class ThreeWarehouseMap {
   }
 
   initLighting() {
-    const ambient = new THREE.AmbientLight(0xffffff, 2.5);
+    // Cool, low ambient for a night facility; a strong key light keeps forms
+    // readable and casts the shadows, with an accent-blue fill for atmosphere.
+    const ambient = new THREE.AmbientLight(0x9fb4d0, 1.1);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const hemi = new THREE.HemisphereLight(0x2f4a6b, 0x05070b, 0.8);
+    this.scene.add(hemi);
+
+    const dirLight = new THREE.DirectionalLight(0xdfeaff, 1.5);
     dirLight.position.set(60, 130, 70);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -120,22 +127,22 @@ export class ThreeWarehouseMap {
     dirLight.shadow.camera.bottom = -80;
     this.scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x0969da, 0.6);
+    const fillLight = new THREE.DirectionalLight(0x2f81f7, 0.5);
     fillLight.position.set(-80, 60, -70);
     this.scene.add(fillLight);
 
-    const centerPoint = new THREE.PointLight(0x0969da, 1.0, 160);
+    const centerPoint = new THREE.PointLight(0x2f81f7, 0.9, 180);
     centerPoint.position.set(0, 25, 0);
     this.scene.add(centerPoint);
   }
 
   buildFloor() {
-    // Large Light Epoxy floor plane (240x180)
+    // Large dark polished-epoxy floor plane (240x180)
     const floorGeo = new THREE.PlaneGeometry(240, 180);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0xdedee5,
-      roughness: 0.15,
-      metalness: 0.1,
+      color: 0x121924,
+      roughness: 0.45,
+      metalness: 0.35,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -143,24 +150,24 @@ export class ThreeWarehouseMap {
     floor.receiveShadow = true;
     this.floorGroup.add(floor);
 
-    // Outdoor Asphalt Loading Apron Ground
+    // Outdoor asphalt loading apron (night)
     const asphaltGeo = new THREE.PlaneGeometry(240, 60);
-    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8, metalness: 0.1 });
+    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x0c1017, roughness: 0.9, metalness: 0.1 });
     const apron = new THREE.Mesh(asphaltGeo, asphaltMat);
     apron.rotation.x = -Math.PI / 2;
     apron.position.set(0, -0.12, 90);
     this.floorGroup.add(apron);
 
-    // Grid Overlay
-    const gridHelper = new THREE.GridHelper(240, 48, 0x0969da, 0xcbcfd5);
+    // Grid overlay — accent major lines on a dark minor grid
+    const gridHelper = new THREE.GridHelper(240, 48, 0x2f81f7, 0x1c2531);
     gridHelper.position.y = 0.01;
-    gridHelper.material.opacity = 0.45;
+    gridHelper.material.opacity = 0.35;
     gridHelper.material.transparent = true;
     this.floorGroup.add(gridHelper);
 
-    // Outer Facility Perimeter Line
+    // Outer facility perimeter line (glowing accent wireframe)
     const frameGeo = new THREE.BoxGeometry(166, 1.4, 106);
-    const frameMat = new THREE.MeshBasicMaterial({ color: 0x0969da, wireframe: true });
+    const frameMat = new THREE.MeshBasicMaterial({ color: 0x2f81f7, wireframe: true });
     const frame = new THREE.Mesh(frameGeo, frameMat);
     frame.position.set(0, 0.7, 0);
     this.floorGroup.add(frame);
@@ -172,8 +179,8 @@ export class ThreeWarehouseMap {
   buildWarehouseBuildingEnclosure() {
     this.buildingGroup.clear();
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.2, roughness: 0.6 });
-    const trimMat = new THREE.MeshBasicMaterial({ color: 0x0969da });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a2230, metalness: 0.35, roughness: 0.65 });
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x2f81f7 });
 
     // Rear Facility Wall (Back Z = -53)
     const rearWallGeo = new THREE.BoxGeometry(168, 18, 1.5);
@@ -488,12 +495,13 @@ export class ThreeWarehouseMap {
       pallet,
       cargo,
       beaconLight,
-      targetForkY: 0.6,
       currentForkY: 0.6,
       currentPos: this.mapToWorld(amr.pose.x, amr.pose.y, 0),
       targetPos: this.mapToWorld(amr.pose.x, amr.pose.y, 0),
-      currentRot: amr.pose.theta || 0,
-      targetRot: amr.pose.theta || 0,
+      currentRot: (amr.pose.headingDeg || 0) * DEG2RAD,
+      targetRot: (amr.pose.headingDeg || 0) * DEG2RAD,
+      jobPhase: 'idle',
+      jobT: 0,
     };
   }
 
@@ -566,14 +574,23 @@ export class ThreeWarehouseMap {
       }
 
       record.targetPos = this.mapToWorld(amr.pose.x, amr.pose.y, 0);
-      record.targetRot = amr.pose.theta || 0;
+      record.targetRot = (amr.pose.headingDeg || 0) * DEG2RAD;
 
+      // --- Forklift "job" state machine (visible pick / place work) -----------
+      // loading  = retrieving a pallet from a rack/pick bay  (fork dips, grabs, lifts)
+      // unloading = placing a pallet at a pack/dispatch bay   (fork lowers, drops)
       const isLoaded = !!amr.payload?.isLoaded;
-      const isHandling = amr.status === 'loading' || amr.status === 'unloading';
+      const status = amr.status;
+      if (status === 'loading') record.jobPhase = 'retrieving';
+      else if (status === 'unloading') record.jobPhase = 'placing';
+      else if (isLoaded) record.jobPhase = 'carrying';
+      else record.jobPhase = 'idle';
+
       if (record.forkCarriage) {
-        record.pallet.visible = isLoaded || isHandling;
-        record.cargo.visible = isLoaded || isHandling;
-        record.targetForkY = isLoaded ? 1.8 : isHandling ? 2.4 : 0.5;
+        // Pallet+cargo are visible whenever the forks hold a load, or mid-job.
+        const showLoad = isLoaded || status === 'loading' || status === 'unloading';
+        record.pallet.visible = showLoad;
+        record.cargo.visible = showLoad;
       }
     }
 
@@ -617,9 +634,15 @@ export class ThreeWarehouseMap {
         const screenY = (-worldPos.y * 0.5 + 0.5) * height;
 
         badge.style.display = 'flex';
-        badge.style.transform = `translate3d(${screenX}px, ${screenY}px, 0)`;
-        
-        const statusTxt = amr.status === 'moving' ? (amr.payload.isLoaded ? 'DELIVERING' : 'EN ROUTE') : amr.status.toUpperCase();
+        badge.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) translate(-50%, -100%)`;
+
+        // Surface the live job the forklift is performing so pick/place work reads.
+        let statusTxt;
+        if (amr.status === 'loading') statusTxt = 'RETRIEVING';
+        else if (amr.status === 'unloading') statusTxt = 'PLACING';
+        else if (amr.status === 'moving') statusTxt = amr.payload.isLoaded ? 'DELIVERING' : 'EN ROUTE';
+        else if (amr.status === 'charging') statusTxt = 'CHARGING';
+        else statusTxt = amr.status.toUpperCase().replace('_', ' ');
         badge.innerHTML = `<span class="vbadge-id">${amr.id}</span><span class="vbadge-status">${statusTxt}</span>`;
       } else {
         badge.style.display = 'none';
@@ -685,11 +708,23 @@ export class ThreeWarehouseMap {
       record.group.rotation.y = -record.currentRot + Math.PI / 2;
 
       if (record.forkCarriage) {
-        record.currentForkY += (record.targetForkY - record.currentForkY) * 0.1;
+        // Fork height is driven by the job phase so pick/place work is legible:
+        //   idle       – forks parked low
+        //   carrying   – forks held at transport height
+        //   retrieving – forks dip to the pallet then hoist it (cyclic)
+        //   placing    – forks lower to set the pallet down (cyclic)
+        const cycle = Math.sin(time * 2) * 0.5 + 0.5; // 0..1
+        let ty = 0.5;
+        if (record.jobPhase === 'carrying') ty = 1.7;
+        else if (record.jobPhase === 'retrieving') ty = 0.2 + cycle * 2.2;
+        else if (record.jobPhase === 'placing') ty = 2.2 - cycle * 2.0;
+        record.currentForkY += (ty - record.currentForkY) * 0.12;
         record.forkCarriage.position.y = record.currentForkY;
       }
       if (record.beaconLight) {
-        record.beaconLight.intensity = 1.5 + Math.sin(time * 3) * 1.0;
+        // Rotating-beacon effect: brighter while actively working a job.
+        const busy = record.jobPhase === 'retrieving' || record.jobPhase === 'placing';
+        record.beaconLight.intensity = (busy ? 2.4 : 1.2) + Math.sin(time * 3) * 1.0;
       }
     }
 

@@ -9,6 +9,7 @@
 import './style.css';
 import { Simulation } from './engine/simulation.js';
 import { PAGES } from './pages.js';
+import { hydrateIcons } from './icons.js';
 
 const sim = new Simulation();
 window.__sim = sim; // handy for debugging in the console
@@ -34,6 +35,7 @@ function navigateTo(page) {
   pageContainer.innerHTML = def.render(sim);
   currentUpdate = def.mount(sim, pageContainer) || null;
   if (currentUpdate) currentUpdate(sim);
+  hydrateIcons(pageContainer);
   document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.page === page));
   sidebar.classList.remove('mobile-open');
 }
@@ -116,6 +118,8 @@ $('globalEstopTop').addEventListener('click', () => {
 function syncPlayButton() {
   const icon = btnPlay.querySelector('i');
   icon.className = sim.running ? 'fas fa-pause' : 'fas fa-play';
+  icon.removeAttribute('data-icon'); // force re-render of the swapped glyph
+  hydrateIcons(btnPlay);
   btnPlay.classList.toggle('paused', !sim.running);
 }
 
@@ -144,6 +148,7 @@ function renderAlerts() {
         )
         .join('')
     : '<div class="alerts-empty">No alerts — fleet nominal.</div>';
+  hydrateIcons(list);
 }
 
 function updateAlertBadge() {
@@ -152,15 +157,6 @@ function updateAlertBadge() {
   badge.textContent = n;
   badge.hidden = n === 0;
 }
-
-// ---------------------------------------------------------------------------
-//  Theme
-// ---------------------------------------------------------------------------
-$('themeToggle').addEventListener('click', () => {
-  document.body.classList.toggle('dark');
-  const icon = $('themeToggle').querySelector('i');
-  icon.className = document.body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
-});
 
 // ---------------------------------------------------------------------------
 //  Global chrome refresh + live page update (driven by the sim tick)
@@ -178,6 +174,7 @@ sim.subscribe(() => {
   if (currentUpdate) {
     try {
       currentUpdate(sim);
+      hydrateIcons(pageContainer); // hydrate any freshly-injected <i> icons
     } catch (err) {
       console.error('page update error', err);
     }
@@ -194,6 +191,7 @@ function clock(s) {
 // ---------------------------------------------------------------------------
 //  Boot
 // ---------------------------------------------------------------------------
+hydrateIcons(document); // render static chrome icons (sidebar, topbar)
 navigateTo('dashboard');
 sim.start();
 syncPlayButton();

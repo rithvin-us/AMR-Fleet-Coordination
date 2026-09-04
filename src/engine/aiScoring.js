@@ -87,7 +87,8 @@ export function rankCandidates(candidates, task, graph, weights, config) {
     let cost = scoreFeatures(f, weights);
     // Hard preference: an AMR below the low-battery line is heavily penalised
     // (recommendation only — it may still be chosen if it is the sole option).
-    if (amr.battery.soc < config.lowBatteryPct) cost += 0.5;
+    // Gated by the "Battery-aware Dispatch" operator setting.
+    if (config.batteryAware !== false && amr.battery.soc < config.lowBatteryPct) cost += 0.5;
     ranked.push({ amrId: amr.id, cost, features: f });
   }
   ranked.sort((a, b) => a.cost - b.cost);

@@ -14,6 +14,7 @@ import { AMRAgent } from './amrAgent.js';
 import { rankCandidates } from './aiScoring.js';
 import { findPath } from './astar.js';
 import { detectDeadlocks, resolveDeadlocks } from './deadlock.js';
+import { CollisionAvoidance } from './collisionAvoidance.js';
 import {
   NODES,
   EDGES,
@@ -61,6 +62,8 @@ export class Simulation {
     this.edgeReservations = new Map(); // edgeKey -> Set(amrId) (capacity 1: single-lane)
     this.edgeWaiters = new Map(); // edgeKey -> Map(amrId -> firstRequestTime)
     this.minSeparation = Infinity; // closest approach ever observed (safety telemetry)
+    this.avoidance = new CollisionAvoidance(); // predictive advisory layer (pluggable stub)
+    this.advisories = []; // latest near-miss / deadlock-risk advisories
     this.agents = FLEET.map((spec) => new AMRAgent(spec, this.config));
     this.tasks = [];
     this.completedLog = [];
@@ -74,7 +77,11 @@ export class Simulation {
       waitingTime: 0,
       reroutes: 0,
       deadlocksResolved: 0,
+      avoidanceInterventions: 0,
+      deadlockRisk: 0,
     };
+    this.avoidance.reset();
+    this.advisories = [];
     for (const a of this.agents) a.reset(this);
     // Seed an initial backlog; live mode keeps topping it up.
     for (let i = 0; i < 6; i++) this._spawnTask(TASK_BATCH[i % TASK_BATCH.length]);
@@ -200,6 +207,71 @@ export class Simulation {
   _isAlive(amrId) {
     const a = this.getAgent(amrId);
     return !!a && a.status !== 'failed' && a.status !== 'stopped';
+  }
+
+  /**
+   * Reconcile live simulation state with a freshly rebuilt graph (called after
+   * the Map Customizer or a factory-branch switch replaces `this.graph`).
+   * Rebuilds the FIFO token engine and reservation ledgers for the new
+   * topology, re-homes any AMR whose node disappeared, prunes tasks whose
+   * endpoints vanished, and recomputes congestion so routing stays valid.
+   *
+   * Without this the customizer / branch switch throws — it is the single most
+   * load-bearing method for the interactive map editing features.
+   */
+  _syncGraphState() {
+    const g = this.graph;
+    if (!g) return;
+
+    // 1. Rebuild the deterministic token engine for the new zone set.
+    this.tokens = new TokenManager(g.zones || [], this.config);
+
+    // 2. Wipe reservation ledgers — node/edge keys may have changed shape.
+    this.nodeReservations = new Map();
+    this.nodeWaiters = new Map();
+    this.edgeReservations = new Map();
+    this.edgeWaiters = new Map();
+
+    // 3. Drop tasks whose pickup/dropoff no longer exist in the new topology.
+    for (const a of this.agents) {
+      if (a.task && (!g.getNode(a.task.pickup) || !g.getNode(a.task.dropoff))) {
+        a.task = null;
+        a.payload = { isLoaded: false, currentLoadKg: 0, maxCapacityKg: a.payload.maxCapacityKg, taskId: null };
+        a.navigation.phase = null;
+        a.navigation.destinationNodeId = null;
+        if (a.status !== 'failed') a.status = 'idle';
+      }
+    }
+    this.tasks = this.tasks.filter((t) => g.getNode(t.pickup) && g.getNode(t.dropoff));
+
+    // 4. Re-home / re-plan every agent against the new graph.
+    const fallback = g.nodes.keys().next().value;
+    for (const a of this.agents) {
+      if (a.status === 'failed') continue;
+      if (!g.getNode(a.pose.currentNodeId)) {
+        const home = g.getNode(a.homeNode) ? a.homeNode : fallback;
+        const n = g.getNode(home);
+        a.pose.currentNodeId = home;
+        a.pose.x = n.x;
+        a.pose.y = n.y;
+      }
+      a.pose.targetNodeId = null;
+      a.pose.progress = 0;
+      a.pose.velocity = 0;
+      a.navigation.currentPath = [a.pose.currentNodeId];
+      a.coordination.heldZones = new Set();
+      a.coordination.waitingForToken = null;
+      if (a.navigation.destinationNodeId && !g.getNode(a.navigation.destinationNodeId)) {
+        a.navigation.destinationNodeId = null;
+        a.navigation.phase = null;
+        if (a.status !== 'charging' && a.status !== 'loading' && a.status !== 'unloading') a.status = 'idle';
+      }
+      this.tryReserveNode(a.pose.currentNodeId, a.id, this.time, true);
+      if (a.navigation.destinationNodeId) a.planTo(a.navigation.destinationNodeId, this);
+    }
+
+    this._updateCongestion();
+    this._emit();
   }
 
   // ---------------------------------------------------------------------------
@@ -338,7 +410,8 @@ export class Simulation {
       let chosen = null;
       let ranking = null;
       if (this.distributedMode && this.settings.aiTaskAllocation) {
-        const { ranked, winner } = rankCandidates(pool, task, this.graph, this.weights, this.config);
+        const scoringConfig = { ...this.config, batteryAware: this.settings.batteryAwareDispatch };
+        const { ranked, winner } = rankCandidates(pool, task, this.graph, this.weights, scoringConfig);
         ranking = ranked;
         chosen = winner ? this.getAgent(winner.amrId) : null;
       } else {
@@ -388,9 +461,17 @@ export class Simulation {
     // Baseline regime uses static routing; distributed uses congestion-aware.
     this.graph.routingUsesCongestion = this.settings.congestionWeighting;
 
+    // Obstacle auto-clear: transient obstacles self-heal after a dwell window
+    // (models a spill/box cleared by floor staff) when the operator enables it.
+    if (this.settings.obstacleAutoClear) this._autoClearObstacles();
+
     this._dispatch();
     this.bus.update(this);
-    this.tokens.update(this.time, (id) => this._isAlive(id));
+    // Audit logging gates whether the token engine keeps its transaction log.
+    this.tokens.loggingEnabled = this.settings.auditLogging;
+    // Dead-man token release is operator-gated; when off, only genuinely
+    // dead/failed holders are revoked (stall/lease revocation is suppressed).
+    this.tokens.update(this.time, (id) => this._isAlive(id), this.settings.deadmanRelease);
     for (const a of this.agents) a.tick(dt, this);
     this._updateCongestion();
 
@@ -406,6 +487,15 @@ export class Simulation {
           this._pushAlert('warning', 'Deadlock resolved', `${n} ${kind} wait(s) broken via priority yield + A* detour.`);
         }
       }
+    }
+
+    // Predictive advisory layer (non-authoritative early-warning; the
+    // reservation protocol remains the collision guarantee). Pluggable stub.
+    if (this.settings.predictiveAvoidance !== false) {
+      const report = this.avoidance.evaluate(this);
+      this.advisories = report.advisories;
+      this.metrics.avoidanceInterventions = this.avoidance.interventionsTotal;
+      this.metrics.deadlockRisk = report.deadlockRisk;
     }
 
     this._checkCollisions();
@@ -494,9 +584,19 @@ export class Simulation {
   // ---------------------------------------------------------------------------
   //  Fault / scenario injection console
   // ---------------------------------------------------------------------------
+  /** Auto-heal obstacles left blocked longer than the dwell window. */
+  _autoClearObstacles(maxBlockedMs = 15000) {
+    for (const e of this.graph.edges.values()) {
+      if (e.blocked && e.blockedAt != null && this.time - e.blockedAt > maxBlockedMs) {
+        this.toggleObstacle(e.a, e.b);
+      }
+    }
+  }
+
   toggleObstacle(a, b) {
     const e = this.graph.toggleBlocked(a, b);
     if (!e) return;
+    e.blockedAt = e.blocked ? this.time : null;
     // The nearest AMR "detects" it and gossips to the fleet.
     const detector = this._nearestAgentToEdge(a, b) || this.agents[0];
     this.bus.send(
@@ -589,6 +689,33 @@ export class Simulation {
   // ---------------------------------------------------------------------------
   kpis() {
     const minutes = this.time / 60000 || 1e-9;
+    const agents = this.agents;
+    const n = agents.length || 1;
+    let active = 0, charging = 0, idle = 0, failed = 0, loaded = 0, waiting = 0, socSum = 0, distSum = 0;
+    for (const a of agents) {
+      socSum += a.battery.soc;
+      distSum += a.metrics.distance;
+      if (a.status === 'charging') charging++;
+      else if (a.status === 'failed') failed++;
+      else if (a.status === 'idle') idle++;
+      else active++;
+      if (a.payload.isLoaded) loaded++;
+      if (a.status === 'waiting_token' || a.status === 'waiting_traffic') waiting++;
+    }
+    // Mesh connectivity: fraction of live-agent pairs within P2P range.
+    const live = agents.filter((a) => a.status !== 'failed');
+    let linkPairs = 0, possiblePairs = 0;
+    const range = this.config.p2pRangeM || 120;
+    for (let i = 0; i < live.length; i++) {
+      for (let j = i + 1; j < live.length; j++) {
+        possiblePairs++;
+        if (Math.hypot(live[i].pose.x - live[j].pose.x, live[i].pose.y - live[j].pose.y) <= range) linkPairs++;
+      }
+    }
+    // Congestion index: mean edge congestion above the clear baseline (1.0).
+    let congSum = 0, congCount = 0;
+    for (const e of this.graph.edges.values()) { congSum += e.congestion - 1; congCount++; }
+    const snap = this.tokens.snapshot();
     return {
       collisions: this.metrics.collisions,
       completed: this.metrics.completedTasks,
@@ -597,11 +724,29 @@ export class Simulation {
       waitingTime: this.metrics.waitingTime,
       reroutes: this.metrics.reroutes,
       deadlocksResolved: this.metrics.deadlocksResolved,
+      avoidanceInterventions: this.metrics.avoidanceInterventions,
+      deadlockRisk: this.metrics.deadlockRisk,
       messages: this.bus.sent,
       avgLatency: this.bus.avgLatency(),
       dropRate: this.bus.dropRate(),
-      activeTokens: this.tokens.snapshot().filter((z) => z.holder).length,
+      activeTokens: snap.filter((z) => z.holder).length,
+      totalTokens: snap.length,
       simSeconds: this.time / 1000,
+      // --- fleet aggregates (all live, all derived from real agent state) ---
+      fleetSize: agents.length,
+      active, charging, idle, failed, loaded, waiting,
+      available: idle + charging,
+      avgBattery: socSum / n,
+      totalDistanceM: distSum,
+      utilizationPct: (active / n) * 100,
+      availabilityPct: ((n - failed) / n) * 100,
+      meshConnectivityPct: possiblePairs ? (linkPairs / possiblePairs) * 100 : 100,
+      activeLinks: linkPairs,
+      congestionIndex: congCount ? congSum / congCount : 0,
+      openTasks: this.tasks.filter((t) => t.status === 'unassigned').length,
+      assignedTasks: this.tasks.filter((t) => t.status === 'assigned').length,
+      queuedTasks: this.tasks.length,
+      minSeparation: this.minSeparation,
     };
   }
 
