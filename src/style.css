@@ -1489,3 +1489,110 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 .scada-progress-cyan {
   background: linear-gradient(90deg, #0284c7, #38bdf8);
 }
+
+/* UNIFIED SCADA INDUSTRIAL DARK CONSOLE THEME */
+.scada-console-wrapper {
+  background: #040914;
+  margin: -16px -20px;
+  padding: 16px 20px;
+  min-height: calc(100vh - var(--topbar-height));
+  color: #f8fafc;
+}
+
+.scada-console-wrapper .card,
+.scada-dashboard-grid .card {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+.scada-console-wrapper .card-header,
+.scada-dashboard-grid .card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.scada-console-wrapper .card-title,
+.scada-dashboard-grid .card-title {
+  color: #94a3b8 !important;
+  font-family: var(--font-mono) !important;
+}
+
+.scada-console-wrapper .card-title i,
+.scada-dashboard-grid .card-title i {
+  color: #00f2ff !important;
+}
+
+.scada-console-wrapper .warehouse-wrap {
+  background: #090f1d !important;
+  border-color: rgba(0, 242, 255, 0.2) !important;
+}
+
+.scada-console-wrapper .wh-node-label {
+  fill: #cbd5e1 !important;
+}
+
+.scada-console-wrapper .wh-edge {
+  stroke: #1e293b !important;
+}
+
+.scada-console-wrapper .wh-edge.busy {
+  stroke: #0284c7 !important;
+}
+
+.scada-console-wrapper .wh-edge.blocked {
+  stroke: #ef4444 !important;
+}
+
+.scada-console-wrapper .wh-facility-zone text {
+  fill: #00f2ff !important;
+}
+
+.scada-console-wrapper .wh-scale-bar line {
+  stroke: #64748b !important;
+}
+
+.scada-console-wrapper .wh-scale-bar text {
+  fill: #94a3b8 !important;
+}
+
+/* Button & Pill overrides in SCADA Console */
+.scada-console-wrapper .btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+.scada-console-wrapper .btn:hover {
+  background: rgba(0, 242, 255, 0.18);
+  border-color: #00f2ff;
+  color: #00f2ff;
+}
+
+.scada-console-wrapper .btn.primary {
+  background: #0969da;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.scada-console-wrapper .speed-group {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.scada-console-wrapper .speed-group button {
+  color: #94a3b8;
+}
+
+.scada-console-wrapper .speed-group button.active,
+.scada-console-wrapper .speed-group button:hover {
+  background: rgba(0, 242, 255, 0.2);
+  color: #00f2ff;
+}
+
+.scada-console-wrapper .telemetry-amr-card {
+  background: #090f1d !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+

@@ -222,6 +222,7 @@ export const dashboard = {
   title: 'Warehouse Map',
   render(sim) {
     return `
+    <div class="scada-console-wrapper">
     <!-- SCADA DASHBOARD TOP HEADER BAR -->
     <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;border:1px solid rgba(255,255,255,0.1);padding:10px 16px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 12px rgba(0,0,0,0.4)">
       <div style="display:flex;align-items:center;gap:12px">
@@ -600,6 +601,7 @@ export const dashboard = {
           <button class="btn btn-primary btn-sm w-full" id="btnSaveTask" style="margin-top:10px;padding:8px"><i class="fas fa-check"></i> Save & Dispatch Order</button>
         </div>
       </div>
+    </div>
     </div>`;
   },
   mount(sim, root) {
