@@ -1490,109 +1490,133 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   background: linear-gradient(90deg, #0284c7, #38bdf8);
 }
 
-/* UNIFIED SCADA INDUSTRIAL DARK CONSOLE THEME */
+/* CLEAN WHITE SCADA CONSOLE THEME */
 .scada-console-wrapper {
-  background: #040914;
+  background: #ffffff !important;
   margin: -16px -20px;
   padding: 16px 20px;
   min-height: calc(100vh - var(--topbar-height));
-  color: #f8fafc;
+  color: #1f2328 !important;
 }
 
 .scada-console-wrapper .card,
 .scada-dashboard-grid .card {
-  background: #0f172a !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  color: #f8fafc !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+  background: #ffffff !important;
+  border: 1px solid #d0d7de !important;
+  color: #1f2328 !important;
+  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.12) !important;
 }
 
 .scada-console-wrapper .card-header,
 .scada-dashboard-grid .card-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid #d0d7de !important;
 }
 
 .scada-console-wrapper .card-title,
 .scada-dashboard-grid .card-title {
-  color: #94a3b8 !important;
-  font-family: var(--font-mono) !important;
+  color: #1f2328 !important;
+  font-family: var(--font-display) !important;
 }
 
 .scada-console-wrapper .card-title i,
 .scada-dashboard-grid .card-title i {
-  color: #00f2ff !important;
+  color: #0969da !important;
 }
 
 .scada-console-wrapper .warehouse-wrap {
-  background: #090f1d !important;
-  border-color: rgba(0, 242, 255, 0.2) !important;
+  background: #ffffff !important;
+  border-color: #d0d7de !important;
 }
 
 .scada-console-wrapper .wh-node-label {
-  fill: #cbd5e1 !important;
+  fill: #1f2328 !important;
 }
 
 .scada-console-wrapper .wh-edge {
-  stroke: #1e293b !important;
+  stroke: #cbd5e1 !important;
 }
 
 .scada-console-wrapper .wh-edge.busy {
-  stroke: #0284c7 !important;
+  stroke: #0969da !important;
 }
 
 .scada-console-wrapper .wh-edge.blocked {
-  stroke: #ef4444 !important;
+  stroke: #cf222e !important;
 }
 
 .scada-console-wrapper .wh-facility-zone text {
-  fill: #00f2ff !important;
+  fill: #0969da !important;
 }
 
 .scada-console-wrapper .wh-scale-bar line {
-  stroke: #64748b !important;
+  stroke: #57606a !important;
 }
 
 .scada-console-wrapper .wh-scale-bar text {
-  fill: #94a3b8 !important;
+  fill: #57606a !important;
+}
+
+.scada-metric-tile {
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+}
+
+.scada-metric-lbl {
+  color: #57606a !important;
+}
+
+.active-missions-table th {
+  color: #57606a !important;
+  border-bottom: 1px solid #d0d7de !important;
+}
+
+.active-missions-table td {
+  color: #1f2328 !important;
+  border-bottom: 1px solid #e1e4e8 !important;
+}
+
+.scada-progress-bar {
+  background: #e1e4e8 !important;
 }
 
 /* Button & Pill overrides in SCADA Console */
 .scada-console-wrapper .btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e2e8f0;
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+  color: #1f2328 !important;
 }
 
 .scada-console-wrapper .btn:hover {
-  background: rgba(0, 242, 255, 0.18);
-  border-color: #00f2ff;
-  color: #00f2ff;
+  background: #f3f4f6 !important;
+  border-color: #0969da !important;
+  color: #0969da !important;
 }
 
 .scada-console-wrapper .btn.primary {
-  background: #0969da;
-  border-color: #38bdf8;
-  color: #ffffff;
+  background: #0969da !important;
+  border-color: #0969da !important;
+  color: #ffffff !important;
 }
 
 .scada-console-wrapper .speed-group {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
 }
 
 .scada-console-wrapper .speed-group button {
-  color: #94a3b8;
+  color: #57606a !important;
 }
 
 .scada-console-wrapper .speed-group button.active,
 .scada-console-wrapper .speed-group button:hover {
-  background: rgba(0, 242, 255, 0.2);
-  color: #00f2ff;
+  background: #0969da !important;
+  color: #ffffff !important;
 }
 
 .scada-console-wrapper .telemetry-amr-card {
-  background: #090f1d !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #f8fafc !important;
+  background: #f6f8fa !important;
+  border-color: #d0d7de !important;
+  color: #1f2328 !important;
 }
+
 

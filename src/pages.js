@@ -224,16 +224,16 @@ export const dashboard = {
     return `
     <div class="scada-console-wrapper">
     <!-- SCADA DASHBOARD TOP HEADER BAR -->
-    <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;border:1px solid rgba(255,255,255,0.1);padding:10px 16px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 12px rgba(0,0,0,0.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#ffffff;border:1px solid #d0d7de;padding:10px 16px;border-radius:6px;margin-bottom:14px;box-shadow:0 1px 3px rgba(31,35,40,0.12)">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:28px;height:28px;background:rgba(16,185,129,0.15);border:1px solid #10b981;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#10b981;font-size:14px">
+        <div style="width:28px;height:28px;background:rgba(9,105,218,0.1);border:1px solid #0969da;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#0969da;font-size:14px">
           <i class="fas fa-cubes"></i>
         </div>
-        <div class="scada-top-title">FLEET COORDINATION DASHBOARD <span style="color:#64748b">|</span> <span style="color:#10b981">ZONE 4</span></div>
+        <div class="scada-top-title" style="color:#1f2328">FLEET COORDINATION DASHBOARD <span style="color:#a0aab4">|</span> <span style="color:#0969da">ZONE 4</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:#94a3b8">
-        <div>TIME <b style="color:#fff;margin-left:4px" id="scadaClock">22:18:45</b></div>
-        <div>DATE <b style="color:#fff;margin-left:4px">2026-09-04</b></div>
+      <div style="display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:#57606a">
+        <div>TIME <b style="color:#1f2328;margin-left:4px" id="scadaClock">22:18:45</b></div>
+        <div>DATE <b style="color:#1f2328;margin-left:4px">2026-09-04</b></div>
         <div style="display:flex;align-items:center;gap:6px">
           <span>NETWORK</span>
           <span class="card-badge success" style="padding:2px 8px;font-size:9.5px"><i class="fas fa-circle" style="font-size:7px;margin-right:4px"></i> OPERATIONAL</span>
@@ -442,7 +442,7 @@ export const dashboard = {
             <div class="card-title" style="font-size:11px;color:#94a3b8;font-family:var(--font-mono)"><i class="fas fa-truck-ramp-box"></i> VEHICLE STATUS</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
-            <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px">
+            <div style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:6px;padding:8px 10px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                 <span style="color:#10b981;font-weight:800;font-family:var(--font-mono);font-size:12px">AMR-204</span>
                 <span style="color:#10b981;font-weight:700;font-family:var(--font-mono);font-size:11px">88%</span>
@@ -455,13 +455,13 @@ export const dashboard = {
               </div>
             </div>
 
-            <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px">
+            <div style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:6px;padding:8px 10px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span style="color:#fbbf24;font-weight:800;font-family:var(--font-mono);font-size:12px">FL-012</span>
-                <span style="color:#fbbf24;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
-                <span style="color:#fbbf24;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
+                <span style="color:#d97706;font-weight:800;font-family:var(--font-mono);font-size:12px">FL-012</span>
+                <span style="color:#d97706;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
+                <span style="color:#d97706;font-weight:700;font-family:var(--font-mono);font-size:11px">54%</span>
               </div>
-              <div class="scada-progress-bar"><div class="scada-progress-fill" style="width:54%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+              <div class="scada-progress-bar"><div class="scada-progress-fill" style="width:54%;background:linear-gradient(90deg,#d97706,#f59e0b)"></div></div>
               <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:#64748b;font-family:var(--font-mono)">
                 <span>Location</span>
                 <span>Charging</span>
