@@ -223,24 +223,6 @@ export const dashboard = {
   render(sim) {
     return `
     <div class="scada-console-wrapper">
-    <!-- SCADA DASHBOARD TOP HEADER BAR -->
-    <div style="display:flex;justify-content:space-between;align-items:center;background:#ffffff;border:1px solid #d0d7de;padding:10px 16px;border-radius:6px;margin-bottom:14px;box-shadow:0 1px 3px rgba(31,35,40,0.12)">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:28px;height:28px;background:rgba(9,105,218,0.1);border:1px solid #0969da;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#0969da;font-size:14px">
-          <i class="fas fa-cubes"></i>
-        </div>
-        <div class="scada-top-title" style="color:#1f2328">FLEET COORDINATION DASHBOARD <span style="color:#a0aab4">|</span> <span style="color:#0969da">ZONE 4</span></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:#57606a">
-        <div>TIME <b style="color:#1f2328;margin-left:4px" id="scadaClock">22:18:45</b></div>
-        <div>DATE <b style="color:#1f2328;margin-left:4px">2026-09-04</b></div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span>NETWORK</span>
-          <span class="card-badge success" style="padding:2px 8px;font-size:9.5px"><i class="fas fa-circle" style="font-size:7px;margin-right:4px"></i> OPERATIONAL</span>
-        </div>
-      </div>
-    </div>
-
     <!-- MAIN 3-COLUMN SCADA DASHBOARD LAYOUT -->
     <div class="scada-dashboard-grid mb-14">
 
