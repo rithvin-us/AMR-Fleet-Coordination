@@ -255,7 +255,7 @@ function updateWarehouse(root, sim) {
         `</g>` +
         `<g class="wh-amr-payload-tag" transform="translate(0 3.2)" style="display:none">` +
           `<rect x="-3.6" y="-1.0" width="7.2" height="2.0" rx="0.5" fill="#b45309" stroke="#fbbf24" stroke-width="0.35"></rect>` +
-          `<text class="wh-amr-payload-txt" y="0.3" fill="#ffffff" font-size="1.1" font-weight="900" text-anchor="middle" font-family="var(--font-mono)">📦 450kg</text>` +
+          `<text class="wh-amr-payload-txt" y="0.3" fill="#ffffff" font-size="1.1" font-weight="900" text-anchor="middle" font-family="var(--font-mono)">LOAD: 450kg</text>` +
         `</g>`;
       layer.appendChild(el);
     }
@@ -280,7 +280,7 @@ function updateWarehouse(root, sim) {
     if (payloadTag) {
       payloadTag.style.display = a.payload.isLoaded ? 'block' : 'none';
       const txt = payloadTag.querySelector('.wh-amr-payload-txt');
-      if (txt) txt.textContent = `📦 ${a.payload.currentLoadKg}kg`;
+      if (txt) txt.textContent = `LOAD: ${a.payload.currentLoadKg}kg`;
     }
 
     const halo = el.querySelector('.wh-amr-halo');
@@ -981,7 +981,7 @@ export const dashboard = {
               </div>
               <div class="mbc-sub">
                 <span><i class="fas fa-bolt-lightning"></i> ${num(a.battery.voltage, 1)}V</span>
-                <span>· ${isCharging ? '⚡ +8.0%/s' : 'Discharging'}</span>
+                <span>· ${isCharging ? '+8.0%/s' : 'Discharging'}</span>
               </div>
             </div>
             <div class="mbc-right">

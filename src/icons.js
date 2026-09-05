@@ -24,10 +24,12 @@ const P = {
   'arrows-up-down': '<polyline points="8 7 12 3 16 7"/><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/>',
   bars: '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
   'battery-quarter': '<rect x="2" y="8" width="16" height="9" rx="2"/><line x1="22" y1="11" x2="22" y2="14"/><rect x="4" y="10" width="3" height="5" fill="currentColor" stroke="none"/>',
+  'battery-three-quarters': '<rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="10" x2="22" y2="14"/><rect x="4" y="9" width="10" height="6" fill="currentColor" stroke="none"/>',
   bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
   bolt: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   'border-all': '<rect x="3" y="3" width="18" height="18" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/>',
   box: '<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.3 7 12 12 20.7 7"/><line x1="12" y1="22" x2="12" y2="12"/>',
+  'box-open': '<path d="M21 8L12 3 3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v9"/><path d="M17 5.5l4 2.5-4 2.5"/><path d="M7 5.5L3 8l4 2.5"/>',
   'building-user': '<path d="M3 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><line x1="7" y1="7" x2="10" y2="7"/><line x1="7" y1="11" x2="10" y2="11"/><circle cx="18" cy="14" r="2"/><path d="M15 21a3 3 0 0 1 6 0"/>',
   camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
   'chart-line': '<polyline points="3 3 3 21 21 21"/><polyline points="7 15 11 10 14 13 20 6"/>',
@@ -92,6 +94,7 @@ const P = {
   sun: '<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="3" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="21" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="5" y1="19" x2="7" y2="17"/><line x1="17" y1="7" x2="19" y2="5"/>',
   tasks: '<line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/>',
   'tower-broadcast': '<circle cx="12" cy="9" r="2"/><path d="M12 11v10"/><path d="M8.5 12.5a5 5 0 0 1 0-7M15.5 5.5a5 5 0 0 1 0 7"/><path d="M6 15a8 8 0 0 1 0-12M18 3a8 8 0 0 1 0 12"/>',
+  'traffic-light': '<rect x="6" y="2" width="12" height="20" rx="3"/><circle cx="12" cy="6" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="currentColor"/>',
   trash: '<polyline points="3 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
   'triangle-exclamation': '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17"/>',
   'truck-ramp-box': '<path d="M2 17h11V7H2z"/><path d="M13 10h4l4 4v3h-8z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/>',
@@ -111,6 +114,7 @@ const ALIAS = {
   search: 'magnifying-glass',
   close: 'xmark',
   edit: 'pen',
+  'bolt-lightning': 'bolt',
 };
 
 /** Return a full <svg> string for an icon name, or null if unknown. */
