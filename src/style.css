@@ -1270,17 +1270,16 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .fleet-roster-table tbody tr:hover {
-  background: rgba(47, 129, 247, 0.08) !important;
+  background: var(--accent-light) !important;
 }
 
 .fleet-roster-table tbody tr.selected-roster-row {
-  background: rgba(47, 129, 247, 0.20) !important;
-  border-left: 4px solid #2f81f7 !important;
-  box-shadow: inset 0 0 12px rgba(47, 129, 247, 0.15);
+  background: rgba(9, 105, 218, 0.12) !important;
+  border-left: 4px solid var(--accent) !important;
 }
 
 .fleet-roster-table tbody tr.selected-roster-row td {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
 }
 

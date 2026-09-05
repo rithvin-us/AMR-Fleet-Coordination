@@ -188,7 +188,7 @@ function buildWarehouseSVG(sim, interactive) {
   </svg></div>`;
 }
 
-function updateWarehouse(root, sim) {
+function updateWarehouse(root, sim, selectedAmrId = null) {
   const g = sim.graph;
   // Edges: blocked / busy / clear
   root.querySelectorAll('.wh-edge').forEach((el) => {
@@ -238,7 +238,9 @@ function updateWarehouse(root, sim) {
       el = document.createElementNS(svgNS, 'g');
       el.setAttribute('data-id', a.id);
       el.setAttribute('class', 'wh-amr');
+      el.style.cursor = 'pointer';
       el.innerHTML =
+        `<circle class="wh-amr-select-ring" r="4.6" fill="none" stroke="#0969da" stroke-width="0.8" stroke-dasharray="1.2 1.2" style="display:none"></circle>` +
         `<circle class="wh-amr-halo" r="3.4"></circle>` +
         `<g class="wh-amr-chassis">` +
           `<rect class="wh-amr-body" x="-2.2" y="-1.5" width="4.4" height="3.0" rx="0.8"></rect>` +
@@ -263,6 +265,12 @@ function updateWarehouse(root, sim) {
     const rot = a.pose.headingDeg || 0;
     el.setAttribute('transform', `translate(${a.pose.x.toFixed(2)} ${a.pose.y.toFixed(2)})`);
     
+    const isSelected = a.id === selectedAmrId;
+    const selectRing = el.querySelector('.wh-amr-select-ring');
+    if (selectRing) {
+      selectRing.style.display = isSelected ? 'block' : 'none';
+    }
+
     const chassis = el.querySelector('.wh-amr-chassis');
     if (chassis) chassis.setAttribute('transform', `rotate(${rot.toFixed(1)})`);
 
@@ -1181,11 +1189,30 @@ export const fleet = {
   mount(sim, root) {
     let selectedAmrId = 'AMR-01';
 
+    const updateRosterHighlight = () => {
+      const roster = root.querySelector('#fleetRosterBody');
+      if (!roster) return;
+      roster.querySelectorAll('tr[data-amr-id]').forEach((tr) => {
+        const isSel = tr.dataset.amrId === selectedAmrId;
+        tr.classList.toggle('selected-roster-row', isSel);
+      });
+    };
+
+    // 2D SVG Map click listener to select AMR
+    root.querySelector('#svgCanvasWrap')?.addEventListener('click', (e) => {
+      const amrGroup = e.target.closest('g.wh-amr[data-id]');
+      if (amrGroup && amrGroup.dataset.id) {
+        selectedAmrId = amrGroup.dataset.id;
+        updateRosterHighlight();
+      }
+    });
+
     // Roster row click listener to select AMR
     root.querySelector('#fleetRosterBody')?.addEventListener('click', (e) => {
       const tr = e.target.closest('tr[data-amr-id]');
-      if (tr) {
+      if (tr && tr.dataset.amrId) {
         selectedAmrId = tr.dataset.amrId;
+        updateRosterHighlight();
       }
     });
 
@@ -1233,35 +1260,64 @@ export const fleet = {
     });
 
     return function update(sim) {
+      updateWarehouse(root, sim, selectedAmrId);
+
       const roster = root.querySelector('#fleetRosterBody');
       if (roster) {
-        roster.innerHTML = sim.agents
-          .map((a) => {
-            const isSel = a.id === selectedAmrId;
-            const soc = a.battery.soc;
-            const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
-            const speedStr = `${num(a.pose.velocity, 2)} m/s`;
-            const cargoStr = payloadHTML(a.payload);
-            const motorOk = a.health.motorState === 'nominal';
-            const lidarOk = a.health.lidarStatus === 'nominal';
+        if (roster.children.length !== sim.agents.length) {
+          roster.innerHTML = sim.agents
+            .map((a) => {
+              const isSel = a.id === selectedAmrId;
+              return `
+              <tr data-amr-id="${a.id}" class="${isSel ? 'selected-roster-row' : ''}" style="cursor:pointer;transition:all 0.15s ease;">
+                <td class="mono" style="font-weight:800;color:var(--accent)">
+                  <i class="fas fa-truck-ramp-box"></i> ${a.id}
+                </td>
+                <td class="cell-status"></td>
+                <td class="mono cell-route" style="font-size:11px"></td>
+                <td class="mono cell-speed" style="font-size:11px"></td>
+                <td class="cell-battery"></td>
+                <td class="cell-cargo" style="font-size:11px"></td>
+                <td class="cell-sensors"></td>
+              </tr>`;
+            })
+            .join('');
+        }
 
-            return `
-            <tr data-amr-id="${a.id}" class="${isSel ? 'selected-roster-row' : ''}" style="cursor:pointer;background:${isSel ? 'rgba(9,105,218,0.22)' : 'transparent'};border-left:${isSel ? '4px solid var(--accent)' : '4px solid transparent'};transition:all 0.15s ease;">
-              <td class="mono" style="font-weight:800;color:var(--accent)">
-                <i class="fas fa-truck-ramp-box"></i> ${a.id}
-              </td>
-              <td><span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span></td>
-              <td class="mono" style="font-size:11px">${routeStr}</td>
-              <td class="mono" style="font-size:11px">${speedStr}</td>
-              <td>${batteryHTML(soc, a.battery?.isCharging || a.status === 'charging', 'sm')}</td>
-              <td style="font-size:11px">${cargoStr}</td>
-              <td>
-                <span title="Motor"><i class="fas fa-microchip ${motorOk ? 'safe' : 'danger-text'}"></i></span>
-                <span title="LiDAR"><i class="fas fa-wave-square ${lidarOk ? 'safe' : 'danger-text'}"></i></span>
-              </td>
-            </tr>`;
-          })
-          .join('');
+        sim.agents.forEach((a) => {
+          const tr = roster.querySelector(`tr[data-amr-id="${a.id}"]`);
+          if (!tr) return;
+          const isSel = a.id === selectedAmrId;
+          tr.classList.toggle('selected-roster-row', isSel);
+
+          const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
+          const speedStr = `${num(a.pose.velocity, 2)} m/s`;
+          const motorOk = a.health.motorState === 'nominal';
+          const lidarOk = a.health.lidarStatus === 'nominal';
+
+          const cStatus = tr.querySelector('.cell-status');
+          if (cStatus) cStatus.innerHTML = `<span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span>`;
+
+          const cRoute = tr.querySelector('.cell-route');
+          if (cRoute && cRoute.textContent !== routeStr) cRoute.textContent = routeStr;
+
+          const cSpeed = tr.querySelector('.cell-speed');
+          if (cSpeed && cSpeed.textContent !== speedStr) cSpeed.textContent = speedStr;
+
+          const cBat = tr.querySelector('.cell-battery');
+          if (cBat) cBat.innerHTML = batteryHTML(a.battery.soc, a.battery?.isCharging || a.status === 'charging', 'sm');
+
+          const cCargo = tr.querySelector('.cell-cargo');
+          if (cCargo) cCargo.innerHTML = payloadHTML(a.payload);
+
+          const cSensors = tr.querySelector('.cell-sensors');
+          if (cSensors) {
+            cSensors.innerHTML = `
+              <span title="Motor"><i class="fas fa-microchip ${motorOk ? 'safe' : 'danger-text'}"></i></span>
+              <span title="LiDAR"><i class="fas fa-wave-square ${lidarOk ? 'safe' : 'danger-text'}"></i></span>
+            `;
+          }
+        });
       }
 
       // Update Inspector Panel for selectedAmrId (persist static HTML to prevent flickering & dropdown resets)
