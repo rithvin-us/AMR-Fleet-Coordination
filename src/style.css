@@ -138,8 +138,8 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
    ----------------------------------------------------------------------------- */
 .sidebar {
   width: var(--sidebar-width);
-  background: #131a24;
-  border-right: 1px solid #263140;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   transition: width var(--transition);
@@ -177,7 +177,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #263140;
+  border-bottom: 1px solid var(--border-color);
   gap: 8px;
   background: var(--bg-secondary);
   height: var(--topbar-height);
@@ -192,9 +192,9 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2f81f7;
-  background: #131a24;
-  border: 1px solid #263140;
+  color: var(--accent);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
 }
 
 .logo-title {
@@ -204,15 +204,15 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   letter-spacing: 0.8px;
   line-height: 1;
   display: block;
-  color: #e6edf3;
+  color: var(--text-primary);
 }
-.logo-title .accent { color: #2f81f7; }
+.logo-title .accent { color: var(--accent); }
 
 .logo-sub {
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.8px;
-  color: #8b98a8;
+  color: var(--text-muted);
   text-transform: uppercase;
   margin-top: 3px;
   display: block;
@@ -226,13 +226,13 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8b98a8;
-  background: var(--bg-secondary);
-  border: 1px solid #263140;
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
   transition: var(--transition);
   flex-shrink: 0;
 }
-.sidebar-toggle:hover { background: #1b2430; color: #e6edf3; }
+.sidebar-toggle:hover { background: var(--bg-card-hover); color: var(--text-primary); }
 .sidebar-toggle i { transition: transform var(--transition); }
 
 .sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
@@ -240,7 +240,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 .nav-section-label {
   font-size: 10px;
   font-weight: 700;
-  color: #8b98a8;
+  color: var(--text-muted);
   letter-spacing: 0.8px;
   padding: 14px 10px 4px;
   text-transform: uppercase;
@@ -253,7 +253,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   gap: 10px;
   padding: 7.5px 10px;
   border-radius: 6px;
-  color: #e6edf3;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 12.5px;
   transition: var(--transition);
@@ -263,25 +263,25 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .nav-item:hover {
-  background: rgba(47, 129, 247, 0.10);
-  color: #2f81f7;
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
 .nav-item.active {
-  background: rgba(47, 129, 247, 0.1);
-  color: #2f81f7;
-  border-color: rgba(47, 129, 247, 0.3);
-  border-left: 3px solid #2f81f7;
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: rgba(9, 105, 218, 0.2);
+  border-left: 3px solid var(--accent);
   font-weight: 700;
 }
-.nav-item.active i { color: #2f81f7; }
+.nav-item.active i { color: var(--accent); }
 .nav-item i { width: 18px; text-align: center; font-size: 13.5px; flex-shrink: 0; }
 .nav-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.15; }
 .nav-label { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-desc { font-size: 9px; font-weight: 500; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); letter-spacing: 0.2px; }
-.nav-item.active .nav-desc { color: rgba(88, 166, 255, 0.85); }
+.nav-item.active .nav-desc { color: var(--accent); }
 
-.sidebar-footer { padding: 8px 10px; border-top: 1px solid #263140; background: var(--bg-secondary); }
+.sidebar-footer { padding: 8px 10px; border-top: 1px solid var(--border-color); background: var(--bg-secondary); }
 
 .operator-badge {
   display: flex;
@@ -289,8 +289,8 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   gap: 8px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: #131a24;
-  border: 1px solid #263140;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
 }
 
 .operator-avatar {
@@ -298,8 +298,8 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   height: 26px;
   border-radius: 6px;
   background: var(--bg-secondary);
-  color: #e6edf3;
-  border: 1px solid #263140;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,10 +307,10 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   flex-shrink: 0;
 }
 
-.operator-name { font-weight: 700; font-size: 11px; display: block; line-height: 1.2; color: #e6edf3; }
-.operator-role { font-size: 9px; color: #8b98a8; display: block; font-family: var(--font-mono); }
+.operator-name { font-weight: 700; font-size: 11px; display: block; line-height: 1.2; color: var(--text-primary); }
+.operator-role { font-size: 9px; color: var(--text-muted); display: block; font-family: var(--font-mono); }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
-.status-dot.online { background: #1a7f37; }
+.status-dot.online { background: var(--success); }
 
 /* -----------------------------------------------------------------------------
    5. TOPBAR & SIMULATION CONTROLS
@@ -628,7 +628,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .warehouse-wrap.iso-3d {
-  background: #0a0e14;
+  background: var(--bg-primary);
   padding: 36px 20px 48px;
   overflow: visible;
   perspective: 1200px;
@@ -739,13 +739,14 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   display: none;
   align-items: center;
   gap: 12px;
-  background: rgba(19, 26, 36, 0.92);
+  background: var(--bg-secondary);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
   padding: 6px 12px;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
   font-size: 10.5px;
+  color: var(--text-primary);
 }
 
 .iso-hud-badge {
@@ -1143,7 +1144,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 .perception-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .amr-feed { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-color); background: var(--bg-panel); }
 .amr-feed-header { padding: 7px 10px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); font-size: 11px; font-weight: 700; border-bottom: 1px solid var(--border-color); }
-.lidar-view { aspect-ratio: 16 / 10; background: #070e17; position: relative; overflow: hidden; border-bottom: 1px solid var(--border-color); }
+.lidar-view { aspect-ratio: 16 / 10; background: var(--bg-primary); position: relative; overflow: hidden; border-bottom: 1px solid var(--border-color); }
 .lidar-sweep { position: absolute; bottom: 0; left: 50%; width: 140%; height: 140%; transform-origin: bottom center; background: conic-gradient(from -45deg at 50% 100%, transparent 0deg, rgba(56, 189, 248, 0.15) 30deg, transparent 60deg); animation: sweep 3.5s linear infinite; }
 @keyframes sweep { from { transform: translateX(-50%) rotate(-42deg); } to { transform: translateX(-50%) rotate(42deg); } }
 .amr-feed-footer { padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-secondary); gap: 6px; font-weight: 600; }
@@ -1290,11 +1291,11 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   width: 100%;
   height: 72vh;
   min-height: 580px;
-  background: #0a0e14;
+  background: var(--bg-primary);
   border-radius: var(--radius);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1326,32 +1327,32 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .scada-hud-card {
-  background: rgba(19, 26, 36, 0.92);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
-  border: 1px solid #263140;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 8px 14px;
-  color: #2f81f7;
+  color: var(--accent);
   font-family: var(--font-mono);
   font-size: 11.5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   pointer-events: auto;
 }
 
 .scada-hud-card b {
-  color: #e6edf3;
+  color: var(--text-primary);
 }
 
 .scada-preset-bar {
   display: flex;
   gap: 6px;
-  background: rgba(19, 26, 36, 0.92);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   padding: 4px;
   border-radius: var(--radius-sm);
-  border: 1px solid #263140;
+  border: 1px solid var(--border-color);
   pointer-events: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .scada-preset-bar button {
@@ -1359,7 +1360,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
-  color: #8b98a8;
+  color: var(--text-muted);
   transition: all 0.2s ease;
 }
 
@@ -1537,9 +1538,9 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 
 .customizer-json-area {
   width: 100%;
-  background: #020617;
-  color: #38bdf8;
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 8px;
   font-family: var(--font-mono);
@@ -1591,16 +1592,16 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .vbadge-content {
-  background: rgba(19, 26, 36, 0.93);
-  border: 1px solid #263140;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   backdrop-filter: blur(8px);
   border-radius: 5px;
   padding: 4px 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  color: #e6edf3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 10px;
 }
@@ -1610,19 +1611,19 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   letter-spacing: 0.5px;
 }
 
-.vbadge-amr { border-color: rgba(16, 185, 129, 0.8); }
-.vbadge-amr .vbadge-name { color: #10b981; }
+.vbadge-amr { border-color: rgba(26, 127, 55, 0.8); }
+.vbadge-amr .vbadge-name { color: var(--success); }
 
-.vbadge-agv { border-color: rgba(47, 129, 247, 0.8); }
-.vbadge-agv .vbadge-name { color: #2f81f7; }
+.vbadge-agv { border-color: rgba(9, 105, 218, 0.8); }
+.vbadge-agv .vbadge-name { color: var(--accent); }
 
 .vbadge-fl { border-color: rgba(217, 119, 6, 0.8); }
 .vbadge-fl .vbadge-name { color: #d97706; }
 
 .vbadge-sub {
   font-size: 8.5px;
-  color: #8b98a8;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  background: var(--bg-panel);
   padding: 1px 5px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -1637,13 +1638,13 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(19, 26, 36, 0.90);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
-  border: 1px solid #263140;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 6px 12px;
   z-index: 50;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   pointer-events: auto;
 }
 
@@ -1654,7 +1655,7 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   padding: 6px 12px;
   border-radius: 4px;
   background: var(--bg-secondary);
-  border: 1px solid #263140;
+  border: 1px solid var(--border-color);
   color: #e6edf3;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1663,16 +1664,16 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .scada-control-btn:hover {
-  background: #1b2430;
-  border-color: #2f81f7;
-  color: #2f81f7;
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .scada-top-title {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
@@ -1699,8 +1700,8 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .scada-metric-tile {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 10px 12px;
   display: flex;
@@ -1712,11 +1713,12 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   font-size: 22px;
   font-weight: 800;
   line-height: 1.1;
+  color: var(--text-primary);
 }
 
 .scada-metric-lbl {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: var(--font-mono);
   text-transform: uppercase;
 }
@@ -1921,15 +1923,15 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 .notif-row .nr-time { color: var(--text-muted); font-size: 9px; font-family: var(--font-mono); margin-left: auto; white-space: nowrap; }
 
 /* 3D floating vehicle badges — match the classes emitted by threeMap.js */
-.scada-vbadge { background: rgba(19, 26, 36, 0.92); border: 1px solid var(--border-color); border-radius: 5px; padding: 3px 7px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45); font-family: var(--font-mono); backdrop-filter: blur(6px); line-height: 1.1; }
+.scada-vbadge { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 5px; padding: 3px 7px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); font-family: var(--font-mono); backdrop-filter: blur(6px); line-height: 1.1; color: var(--text-primary); }
 .scada-vbadge .vbadge-id { font-weight: 800; font-size: 10px; letter-spacing: 0.4px; }
-.scada-vbadge .vbadge-status { font-size: 7.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; background: rgba(255, 255, 255, 0.06); padding: 1px 4px; border-radius: 3px; }
-.scada-vbadge.vbadge-amr { border-color: rgba(63, 185, 80, 0.55); }
-.scada-vbadge.vbadge-amr .vbadge-id { color: #3fb950; }
-.scada-vbadge.vbadge-agv { border-color: rgba(88, 166, 255, 0.55); }
-.scada-vbadge.vbadge-agv .vbadge-id { color: #58a6ff; }
-.scada-vbadge.vbadge-fl { border-color: rgba(210, 153, 34, 0.55); }
-.scada-vbadge.vbadge-fl .vbadge-id { color: #d29922; }
+.scada-vbadge .vbadge-status { font-size: 7.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; background: var(--bg-panel); padding: 1px 4px; border-radius: 3px; }
+.scada-vbadge.vbadge-amr { border-color: rgba(26, 127, 55, 0.55); }
+.scada-vbadge.vbadge-amr .vbadge-id { color: var(--success); }
+.scada-vbadge.vbadge-agv { border-color: rgba(9, 105, 218, 0.55); }
+.scada-vbadge.vbadge-agv .vbadge-id { color: var(--accent); }
+.scada-vbadge.vbadge-fl { border-color: rgba(217, 119, 6, 0.55); }
+.scada-vbadge.vbadge-fl .vbadge-id { color: #d97706; }
 
 /* High Visibility Payload Badge System */
 .payload-badge {
@@ -1946,10 +1948,10 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 
 .payload-badge.loaded {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
   font-weight: 700;
 }
 .payload-badge.loaded i {
@@ -1959,13 +1961,13 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 }
 .payload-badge.loaded strong {
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .payload-badge.empty {
-  background: rgba(148, 163, 184, 0.08);
+  background: var(--bg-panel);
   color: var(--text-muted);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid var(--border-color);
   font-weight: 500;
 }
 
@@ -1986,12 +1988,12 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   font-family: var(--font-mono);
 }
 .vbadge-payload.loaded {
-  background: rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.6);
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
 }
 .vbadge-payload.empty {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-panel);
   color: var(--text-muted);
 }
