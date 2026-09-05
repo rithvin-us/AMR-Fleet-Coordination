@@ -684,6 +684,26 @@ export class Simulation {
     this._emit();
   }
 
+  clearCongestion() {
+    for (const edge of this.graph.edges.values()) {
+      edge.blocked = false;
+      edge.congestion = 1.0;
+    }
+    this.edgeWaiters.clear();
+    for (const zone of this.tokens.snapshot()) {
+      if (zone.holder) {
+        this.tokens.release(zone.id, zone.holder);
+      }
+    }
+    for (const a of this.agents) {
+      if (a.status === 'moving' && a.navigation.destinationNodeId) {
+        a.planTo(a.navigation.destinationNodeId, this);
+      }
+    }
+    this._pushAlert('info', 'Traffic De-congested', 'Corridor blockages cleared — pathways optimized for non-congested flow.');
+    this._emit();
+  }
+
   // ---------------------------------------------------------------------------
   //  Derived metrics for the dashboard
   // ---------------------------------------------------------------------------

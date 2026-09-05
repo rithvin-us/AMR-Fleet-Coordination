@@ -43,42 +43,107 @@ const clock = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Ma
 const short = (id) => id.replace('AMR-', '');
 const num = (x, d = 0) => (x == null || !isFinite(x) ? '—' : x.toFixed(d));
 
-function batteryHTML(soc) {
-  const cls = soc > 55 ? 'green' : soc > 22 ? 'amber' : 'red';
-  const col = soc > 55 ? 'var(--success)' : soc > 22 ? 'var(--warning)' : 'var(--danger)';
-  return `<span class="battery"><span class="battery-shell"><span class="battery-level" style="width:${Math.max(4, soc)}%;background:${col}"></span></span><span class="mono" style="font-size:11px">${num(soc)}%</span></span>`;
+function batteryHTML(soc, isCharging = false, size = 'md') {
+  const isLow = soc <= 22;
+  const isHigh = soc > 55;
+  const col = isHigh ? 'var(--success)' : isLow ? 'var(--danger)' : 'var(--warning)';
+  const grad = isHigh
+    ? 'linear-gradient(90deg, #2ea043, #3fb950)'
+    : isLow
+    ? 'linear-gradient(90deg, #cf222e, #ff6b6b)'
+    : 'linear-gradient(90deg, #d29922, #f0883e)';
+
+  const sizeCls = size === 'sm' ? 'battery-sm' : size === 'lg' ? 'battery-lg' : 'battery-md';
+  const chargingCls = isCharging ? 'is-charging' : '';
+  const criticalCls = isLow && !isCharging ? 'is-critical' : '';
+
+  const boltIcon = isCharging ? `<i class="fas fa-bolt battery-bolt"></i>` : '';
+
+  return `<span class="battery ${sizeCls} ${chargingCls} ${criticalCls}" title="${num(soc)}% SoC${isCharging ? ' (Charging)' : ''}">
+    <span class="battery-shell">
+      <span class="battery-level" style="width:${Math.max(6, Math.min(100, soc))}%;background:${grad}"></span>
+      ${boltIcon}
+    </span>
+    <span class="battery-pct mono" style="color:${col}">${num(soc)}%</span>
+  </span>`;
+}
+
+function payloadHTML(payload) {
+  if (!payload || !payload.isLoaded) {
+    return `<span class="payload-badge empty" title="Unladen (No active payload)"><i class="fas fa-box-open"></i> Empty</span>`;
+  }
+  const loadKg = payload.currentLoadKg || 0;
+  return `<span class="payload-badge loaded" title="Carrying ${loadKg} kg payload"><i class="fas fa-box"></i> <strong>${loadKg}</strong> kg</span>`;
 }
 
 // ---------------------------------------------------------------------------
 //  Warehouse SVG canvas (built once, AMRs/edges updated live)
 // ---------------------------------------------------------------------------
 function buildWarehouseSVG(sim, interactive) {
+  sim.mapSettings = sim.mapSettings || {
+    showNodeNums: true,
+    showEdgeNums: true,
+    nodePrefix: 'N-',
+    edgePrefix: 'E-',
+  };
+
   const g = sim.graph;
+  const nodePrefix = sim.mapSettings.nodePrefix || 'N-';
+  const edgePrefix = sim.mapSettings.edgePrefix || 'E-';
+  const showNodeNums = sim.mapSettings.showNodeNums !== false;
+  const showEdgeNums = sim.mapSettings.showEdgeNums !== false;
+
   let edges = '';
+  let edgeIdx = 0;
   for (const e of g.edges.values()) {
+    edgeIdx++;
     const a = g.getNode(e.a);
     const b = g.getNode(e.b);
+    if (!a || !b) continue;
+
+    const midX = ((a.x + b.x) / 2).toFixed(1);
+    const midY = ((a.y + b.y) / 2).toFixed(1);
+    const edgeNumStr = `${edgePrefix}${String(edgeIdx).padStart(2, '0')}`;
+
     edges += `<line class="wh-edge" data-key="${e.key}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
     if (interactive) {
       edges += `<line class="wh-edge-hit" data-a="${e.a}" data-b="${e.b}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
     }
+
+    edges += `<g class="wh-edge-badge-group ${showEdgeNums ? '' : 'wh-hidden-badge'}" data-edge-key="${e.key}" transform="translate(${midX} ${midY})">
+      <rect x="-3.4" y="-1.0" width="6.8" height="2.0" rx="0.5" class="wh-edge-badge-bg"/>
+      <text class="wh-edge-num-text" y="0.3" text-anchor="middle">${edgeNumStr}</text>
+    </g>`;
   }
+
   let nodes = '';
+  let nodeIdx = 0;
   for (const n of g.nodes.values()) {
+    nodeIdx++;
     const isInt = n.type === 'intersection';
     const isJunc = n.type === 'junction';
+    const r = isJunc ? 1.4 : 2.4;
+    const labelY = isJunc ? n.y - 2.2 : n.y + 4.8;
+    const label = isJunc ? n.id : n.label.replace(/(Charge Dock|Rack|Pick Stn|Pack Line|Dispatch Dock) /, (m, w) => ({ 'Charge Dock': 'CHRG ', Rack: 'RACK ', 'Pick Stn': 'PICK ', 'Pack Line': 'PACK ', 'Dispatch Dock': 'DROP ' }[w]));
+    const nodeNumStr = `${nodePrefix}${String(nodeIdx).padStart(2, '0')}`;
+
     if (isInt) {
-      nodes += `<g class="wh-node-group">
+      nodes += `<g class="wh-node-group" data-id="${n.id}">
         <rect class="wh-node wh-node-intersection" data-id="${n.id}" x="${n.x - 2.8}" y="${n.y - 2.8}" width="5.6" height="5.6" rx="1.2" transform="rotate(45 ${n.x} ${n.y})"/>
-        <text class="wh-node-label" x="${n.x}" y="${n.y - 4.2}">${esc(n.label)}</text>
+        <text class="wh-node-label" x="${n.x}" y="${n.y - 4.2}">${esc(label)}</text>
+        <g class="wh-node-badge-group ${showNodeNums ? '' : 'wh-hidden-badge'}" transform="translate(${n.x} ${n.y + 4.2})">
+          <rect x="-3.0" y="-0.9" width="6.0" height="1.8" rx="0.4" class="wh-node-badge-bg"/>
+          <text class="wh-node-num-text" y="0.3" text-anchor="middle">${nodeNumStr}</text>
+        </g>
       </g>`;
     } else {
-      const r = isJunc ? 1.4 : 2.4;
-      const labelY = isJunc ? n.y - 2.2 : n.y + 4.8;
-      const label = isJunc ? n.id : n.label.replace(/(Charge Dock|Rack|Pick Stn|Pack Line|Dispatch Dock) /, (m, w) => ({ 'Charge Dock': 'CHRG ', Rack: 'RACK ', 'Pick Stn': 'PICK ', 'Pack Line': 'PACK ', 'Dispatch Dock': 'DROP ' }[w]));
-      nodes += `<g class="wh-node-group">
+      nodes += `<g class="wh-node-group" data-id="${n.id}">
         <circle class="wh-node wh-node-${n.type}" data-id="${n.id}" cx="${n.x}" cy="${n.y}" r="${r}"/>
         <text class="wh-node-label ${isJunc ? 'junc-label' : ''}" x="${n.x}" y="${labelY}">${esc(label)}</text>
+        <g class="wh-node-badge-group ${showNodeNums ? '' : 'wh-hidden-badge'}" transform="translate(${n.x} ${n.y + (isJunc ? 3.4 : -3.8)})">
+          <rect x="-3.0" y="-0.9" width="6.0" height="1.8" rx="0.4" class="wh-node-badge-bg"/>
+          <text class="wh-node-num-text" y="0.3" text-anchor="middle">${nodeNumStr}</text>
+        </g>
       </g>`;
     }
   }
@@ -174,15 +239,23 @@ function updateWarehouse(root, sim) {
       el.setAttribute('data-id', a.id);
       el.setAttribute('class', 'wh-amr');
       el.innerHTML =
-        `<circle class="wh-amr-halo" r="3.2"></circle>` +
+        `<circle class="wh-amr-halo" r="3.4"></circle>` +
         `<g class="wh-amr-chassis">` +
           `<rect class="wh-amr-body" x="-2.2" y="-1.5" width="4.4" height="3.0" rx="0.8"></rect>` +
           `<polygon points="1.8,0 0.8,-0.8 0.8,0.8" fill="#ffffff" opacity="0.95"></polygon>` +
-          `<rect class="wh-amr-cargo" x="-1.1" y="-0.9" width="2.2" height="1.8" rx="0.3" fill="none" stroke="#ffffff" stroke-width="0.3"></rect>` +
+          `<g class="wh-amr-cargo-group">` +
+            `<rect class="wh-amr-cargo-box" x="-1.4" y="-1.1" width="2.8" height="2.2" rx="0.4" fill="#f59e0b" stroke="#ffffff" stroke-width="0.35"></rect>` +
+            `<line x1="-1.4" y1="0" x2="1.4" y2="0" stroke="#78350f" stroke-width="0.3"></line>` +
+            `<line x1="0" y1="-1.1" x2="0" y2="1.1" stroke="#78350f" stroke-width="0.3"></line>` +
+          `</g>` +
         `</g>` +
         `<g class="wh-amr-badge" transform="translate(0 -2.8)">` +
           `<rect x="-2.4" y="-1.0" width="4.8" height="2.0" rx="0.5" fill="#0f172a" stroke="#000000" stroke-width="0.3"></rect>` +
           `<text class="wh-amr-label" y="0.2" fill="#ffffff">${short(a.id)}</text>` +
+        `</g>` +
+        `<g class="wh-amr-payload-tag" transform="translate(0 3.2)" style="display:none">` +
+          `<rect x="-3.6" y="-1.0" width="7.2" height="2.0" rx="0.5" fill="#b45309" stroke="#fbbf24" stroke-width="0.35"></rect>` +
+          `<text class="wh-amr-payload-txt" y="0.3" fill="#ffffff" font-size="1.1" font-weight="900" text-anchor="middle" font-family="var(--font-mono)">📦 450kg</text>` +
         `</g>`;
       layer.appendChild(el);
     }
@@ -198,9 +271,16 @@ function updateWarehouse(root, sim) {
       body.setAttribute('fill', AMR_FILL[a.status] || 'var(--text-muted)');
     }
     
-    const cargo = el.querySelector('.wh-amr-cargo');
-    if (cargo) {
-      cargo.style.display = a.payload.isLoaded ? 'block' : 'none';
+    const cargoGroup = el.querySelector('.wh-amr-cargo-group');
+    if (cargoGroup) {
+      cargoGroup.style.display = a.payload.isLoaded ? 'block' : 'none';
+    }
+
+    const payloadTag = el.querySelector('.wh-amr-payload-tag');
+    if (payloadTag) {
+      payloadTag.style.display = a.payload.isLoaded ? 'block' : 'none';
+      const txt = payloadTag.querySelector('.wh-amr-payload-txt');
+      if (txt) txt.textContent = `📦 ${a.payload.currentLoadKg}kg`;
     }
 
     const halo = el.querySelector('.wh-amr-halo');
@@ -323,11 +403,33 @@ export const dashboard = {
               </div>
             </div>
 
+            <!-- GRAPH NUMBERS & DE-CONGESTION CUSTOMIZER STRIP -->
+            <div class="graph-customizer-toolbar" style="margin:8px 14px 4px">
+              <div class="gct-section">
+                <span class="gct-label"><i class="fas fa-sliders" style="color:var(--accent)"></i> Graph Customizer:</span>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+                  <input type="checkbox" id="chkShowNodeNums" ${sim.mapSettings?.showNodeNums !== false ? 'checked' : ''}/>
+                  <span>Node #s</span>
+                </label>
+                <input type="text" id="txtNodePrefix" value="${sim.mapSettings?.nodePrefix || 'N-'}" class="gct-input" title="Custom Node Prefix" placeholder="N-"/>
+
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin-left:8px">
+                  <input type="checkbox" id="chkShowEdgeNums" ${sim.mapSettings?.showEdgeNums !== false ? 'checked' : ''}/>
+                  <span>Edge #s</span>
+                </label>
+                <input type="text" id="txtEdgePrefix" value="${sim.mapSettings?.edgePrefix || 'E-'}" class="gct-input" title="Custom Edge Prefix" placeholder="E-"/>
+              </div>
+
+              <button class="btn primary btn-sm" id="btnDecongest" style="padding:4px 10px;font-size:10.5px">
+                <i class="fas fa-traffic-light"></i> Clear Congestion & De-congest
+              </button>
+            </div>
+
             <div class="warehouse-container-box" style="position:relative">
               <div id="svgCanvasWrap" style="display:none;background:var(--bg-panel)">
                 ${buildWarehouseSVG(sim, true)}
               </div>
-              <div id="threeCanvasContainer" style="display:block;height:540px;background:#0a0e14;">
+              <div id="threeCanvasContainer" style="display:block;height:540px;background:var(--bg-primary);">
                 <div class="scada-hud-overlay">
                   <div class="scada-hud-card">
                     <i class="fas fa-microchip"></i> <b>WEBGL DIGITAL TWIN</b> | <span id="hud3DStats">Real-time 3D fleet · collision-free</span>
@@ -356,6 +458,7 @@ export const dashboard = {
               <button class="btn btn-sm" data-act="obstacle"><i class="fas fa-triangle-exclamation"></i> +1 Obstacle</button>
               <button class="btn btn-sm" data-act="multi_obstacle"><i class="fas fa-road-barrier"></i> +3 Obstacles</button>
               <button class="btn btn-sm" data-act="clear_obstacles"><i class="fas fa-rotate-left"></i> Clear All</button>
+              <button class="btn btn-sm primary" data-act="decongest"><i class="fas fa-traffic-light"></i> De-congest Traffic</button>
               <button class="btn btn-sm" data-act="failure"><i class="fas fa-plug-circle-xmark"></i> Inject Fault</button>
               <button class="btn btn-sm" data-act="lowbatt"><i class="fas fa-battery-quarter"></i> Low Battery</button>
               <button class="btn btn-sm primary" data-act="task"><i class="fas fa-plus"></i> Dispatch Task</button>
@@ -557,6 +660,41 @@ export const dashboard = {
       if (drawer) drawer.classList.remove('open');
     });
 
+    // Graph Number Customizer & De-congestion Listeners
+    root.querySelector('#chkShowNodeNums')?.addEventListener('change', (e) => {
+      sim.mapSettings = sim.mapSettings || {};
+      sim.mapSettings.showNodeNums = e.target.checked;
+      const wrap = root.querySelector('#svgCanvasWrap');
+      if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
+    });
+
+    root.querySelector('#chkShowEdgeNums')?.addEventListener('change', (e) => {
+      sim.mapSettings = sim.mapSettings || {};
+      sim.mapSettings.showEdgeNums = e.target.checked;
+      const wrap = root.querySelector('#svgCanvasWrap');
+      if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
+    });
+
+    root.querySelector('#txtNodePrefix')?.addEventListener('input', (e) => {
+      sim.mapSettings = sim.mapSettings || {};
+      sim.mapSettings.nodePrefix = e.target.value;
+      const wrap = root.querySelector('#svgCanvasWrap');
+      if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
+    });
+
+    root.querySelector('#txtEdgePrefix')?.addEventListener('input', (e) => {
+      sim.mapSettings = sim.mapSettings || {};
+      sim.mapSettings.edgePrefix = e.target.value;
+      const wrap = root.querySelector('#svgCanvasWrap');
+      if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
+    });
+
+    root.querySelector('#btnDecongest')?.addEventListener('click', () => {
+      sim.clearCongestion();
+      const wrap = root.querySelector('#svgCanvasWrap');
+      if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
+    });
+
     // 4. Camera Presets Bar & Floating Control Toolbar for 3D View
     root.querySelector('#btnFullscreen3DHeader')?.addEventListener('click', () => {
       threeMap?.toggleFullscreen();
@@ -631,6 +769,10 @@ export const dashboard = {
         for (const e2 of blocked) {
           sim.toggleObstacle(e2.a, e2.b);
         }
+      } else if (act === 'decongest') {
+        sim.clearCongestion();
+        const wrap = root.querySelector('#svgCanvasWrap');
+        if (wrap) wrap.innerHTML = buildWarehouseSVG(sim, true);
       } else if (act === 'failure') {
         const live = sim.agents.filter((a) => a.status !== 'failed');
         const a = live[Math.floor(Math.random() * live.length)];
@@ -810,20 +952,45 @@ export const dashboard = {
           : '<div class="alerts-empty">Order book empty</div>';
       }
 
-      // --- Battery & charge status (lowest SoC first) ---
+      // --- Battery & charge status (mobile battery telemetry monitor) ---
       const vs = root.querySelector('#vehStatusList');
       if (vs) {
+        const chargingCount = sim.agents.filter((a) => a.battery.isCharging || a.status === 'charging').length;
+        const lowBattCount = sim.agents.filter((a) => a.battery.soc <= sim.config.lowBatteryPct).length;
         const sorted = [...sim.agents].sort((a, b) => a.battery.soc - b.battery.soc).slice(0, 6);
-        vs.innerHTML = sorted.map((a) => {
-          const soc = a.battery.soc;
-          const col = soc > 55 ? 'var(--success)' : soc > 22 ? 'var(--warning)' : 'var(--danger)';
-          const tag = a.status === 'charging' ? 'charging' : a.status === 'failed' ? 'fault' : (STATUS_LABEL[a.status] || a.status);
-          return `<div class="mini-row">
-            <span class="mr-id" style="color:${col}">${short(a.id)}</span>
-            <span class="mr-bar"><span class="mr-fill" style="width:${Math.max(3, soc)}%;background:${col}"></span></span>
-            <span class="mr-val">${num(soc)}% · ${tag}</span>
+
+        const summaryHTML = `
+          <div class="fleet-battery-summary">
+            <div class="fbs-stat"><i class="fas fa-battery-three-quarters" style="color:var(--accent)"></i> Fleet Avg: <strong>${num(sim.kpis.avgBattery, 0)}%</strong></div>
+            <div class="fbs-stat" style="color:${chargingCount > 0 ? 'var(--success)' : 'var(--text-muted)'}"><i class="fas fa-bolt"></i> <strong>${chargingCount}</strong> charging</div>
+            <div class="fbs-stat" style="color:${lowBattCount > 0 ? 'var(--danger)' : 'var(--text-muted)'}"><i class="fas fa-triangle-exclamation"></i> <strong>${lowBattCount}</strong> low</div>
           </div>`;
-        }).join('');
+
+        const cardsHTML = `<div class="mobile-battery-list">` + sorted.map((a) => {
+          const soc = a.battery.soc;
+          const isCharging = a.battery.isCharging || a.status === 'charging';
+          const isCritical = soc <= sim.config.lowBatteryPct && !isCharging;
+          const tag = a.status === 'charging' ? 'CHARGING' : a.status === 'failed' ? 'FAULT' : (STATUS_LABEL[a.status] || a.status).toUpperCase();
+          const cardStateCls = isCharging ? 'charging' : isCritical ? 'critical' : '';
+
+          return `<div class="mobile-battery-card ${cardStateCls}">
+            <div class="mbc-left">
+              <div class="mbc-id-row">
+                <span class="mbc-id">${a.id}</span>
+                <span class="status-pill ${a.status === 'charging' ? 'charging' : a.status}" style="font-size:8px;padding:1px 4px">${tag}</span>
+              </div>
+              <div class="mbc-sub">
+                <span><i class="fas fa-bolt-lightning"></i> ${num(a.battery.voltage, 1)}V</span>
+                <span>· ${isCharging ? '⚡ +8.0%/s' : 'Discharging'}</span>
+              </div>
+            </div>
+            <div class="mbc-right">
+              ${batteryHTML(soc, isCharging, 'md')}
+            </div>
+          </div>`;
+        }).join('') + `</div>`;
+
+        vs.innerHTML = summaryHTML + cardsHTML;
       }
 
       // --- Notifications (real alert stream) ---
@@ -887,7 +1054,7 @@ export const dashboard = {
         fg.innerHTML = sim.agents.map((a) => {
           const soc = a.battery.soc;
           const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
-          const cargoStr = a.payload.isLoaded ? `<span class="accent-text"><i class="fas fa-box"></i> ${a.payload.currentLoadKg}kg</span>` : '<span class="muted">Empty</span>';
+          const cargoStr = payloadHTML(a.payload);
           const speedStr = `${num(a.pose.velocity, 2)}m/s`;
           const motorOk = a.health.motorState === 'nominal';
           const lidarOk = a.health.lidarStatus === 'nominal';
@@ -906,7 +1073,7 @@ export const dashboard = {
               <div style="display:flex;justify-content:space-between"><span class="muted">Speed / Cargo</span><span class="mono">${speedStr} · ${cargoStr}</span></div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
                 <span class="muted">Battery</span>
-                ${batteryHTML(soc)}
+                ${batteryHTML(soc, a.battery?.isCharging || a.status === 'charging', 'md')}
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:4px;border-top:1px solid var(--border-color);font-size:10px">
                 <span style="display:flex;gap:7px;align-items:center">
@@ -1074,7 +1241,7 @@ export const fleet = {
             const soc = a.battery.soc;
             const routeStr = `${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}`;
             const speedStr = `${num(a.pose.velocity, 2)} m/s`;
-            const cargoStr = a.payload.isLoaded ? `${a.payload.currentLoadKg} kg` : 'empty';
+            const cargoStr = payloadHTML(a.payload);
             const motorOk = a.health.motorState === 'nominal';
             const lidarOk = a.health.lidarStatus === 'nominal';
 
@@ -1086,7 +1253,7 @@ export const fleet = {
               <td><span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span></td>
               <td class="mono" style="font-size:11px">${routeStr}</td>
               <td class="mono" style="font-size:11px">${speedStr}</td>
-              <td>${batteryHTML(soc)}</td>
+              <td>${batteryHTML(soc, a.battery?.isCharging || a.status === 'charging', 'sm')}</td>
               <td style="font-size:11px">${cargoStr}</td>
               <td>
                 <span title="Motor"><i class="fas fa-microchip ${motorOk ? 'safe' : 'danger-text'}"></i></span>
@@ -1097,7 +1264,7 @@ export const fleet = {
           .join('');
       }
 
-      // Update Inspector Panel for selectedAmrId
+      // Update Inspector Panel for selectedAmrId (persist static HTML to prevent flickering & dropdown resets)
       const inspector = root.querySelector('#amrInspectorContent');
       if (inspector) {
         const a = sim.getAgent(selectedAmrId) || sim.agents[0];
@@ -1107,96 +1274,149 @@ export const fleet = {
           const isFailed = a.status === 'failed';
           const isStopped = a.status === 'stopped';
 
-          inspector.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color)">
-              <div>
-                <span style="font-size:16px;font-weight:800;font-family:var(--font-display);color:var(--text-primary);display:flex;align-items:center;gap:8px">
-                  <i class="fas fa-truck-ramp-box" style="color:var(--accent)"></i> ${a.id} Inspector
-                </span>
-                <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">Model: ${a.model} · Firmware v2.4</span>
+          // If AMR selection changed or initial render needed, build static inspector layout once
+          if (inspector.dataset.renderedAmrId !== a.id) {
+            inspector.dataset.renderedAmrId = a.id;
+            inspector.innerHTML = `
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color)">
+                <div>
+                  <span style="font-size:16px;font-weight:800;font-family:var(--font-display);color:var(--text-primary);display:flex;align-items:center;gap:8px">
+                    <i class="fas fa-truck-ramp-box" style="color:var(--accent)"></i> <span id="inspTitle">${a.id} Inspector</span>
+                  </span>
+                  <span id="inspSub" style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">Model: ${a.model} · Firmware v2.4</span>
+                </div>
+                <span id="inspStatusPill" class="status-pill ${a.status}">${STATUS_LABEL[a.status] || a.status}</span>
               </div>
-              <span class="status-pill ${a.status}">${STATUS_LABEL[a.status] || a.status}</span>
-            </div>
 
-            <!-- DIRECT MOVEMENT CONTROL ACTIONS -->
-            <div style="margin-bottom:12px">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">
-                <i class="fas fa-gamepad" style="color:var(--accent)"></i> Vehicle Movement Controls
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                <button class="btn" data-amr-act="send_charge" data-amr-id="${a.id}">
-                  <i class="fas fa-bolt" style="color:var(--accent)"></i> Dispatch Charge
-                </button>
-                <button class="btn" data-amr-act="force_reroute" data-amr-id="${a.id}">
-                  <i class="fas fa-route" style="color:var(--info)"></i> Force Reroute
-                </button>
-                <button class="btn" data-amr-act="toggle_hold" data-amr-id="${a.id}" ${isFailed ? 'disabled' : ''}>
-                  <i class="fas fa-${isStopped ? 'play' : 'pause'}" style="color:var(--warning)"></i> ${isStopped ? 'Resume' : 'Hold Position'}
-                </button>
-                <button class="btn ${isFailed ? 'primary' : 'danger'}" data-amr-act="toggle_fault" data-amr-id="${a.id}">
-                  <i class="fas fa-${isFailed ? 'wrench' : 'power-off'}"></i> ${isFailed ? 'Clear Fault' : 'E-Stop Fault'}
-                </button>
-              </div>
-            </div>
-
-            <!-- DIRECT POINT-TO-POINT DISPATCH -->
-            <div style="margin-bottom:12px;padding:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm)">
-              <div style="font-size:10.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px">
-                <i class="fas fa-paper-plane" style="color:var(--accent)"></i> Direct Node Dispatch
-              </div>
-              <div style="display:flex;gap:6px">
-                <select id="dispatchDestSelect" class="mono" style="flex:1;padding:4px 8px;font-size:11px;border:1px solid var(--border-color);border-radius:3px;background:var(--bg-panel);color:var(--text-primary)">
-                  <option value="STOR-A">STOR-A (Storage Zone Alpha)</option>
-                  <option value="STOR-B">STOR-B (Storage Zone Bravo)</option>
-                  <option value="PICK-1">PICK-1 (Pick Station 1)</option>
-                  <option value="PICK-2">PICK-2 (Pick Station 2)</option>
-                  <option value="PACK-1">PACK-1 (Pack Line 1)</option>
-                  <option value="PACK-2">PACK-2 (Pack Line 2)</option>
-                  <option value="DROP-1">DROP-1 (Dispatch Bay 1)</option>
-                  <option value="DROP-2">DROP-2 (Dispatch Bay 2)</option>
-                  <option value="CHRG-1">CHRG-1 (Charge Dock 1)</option>
-                  <option value="CHRG-2">CHRG-2 (Charge Dock 2)</option>
-                </select>
-                <button class="btn primary" data-amr-act="dispatch_node" data-amr-id="${a.id}" style="padding:4px 10px">Dispatch</button>
-              </div>
-            </div>
-
-            <!-- LIDAR SWEEP VISUALIZER -->
-            <div style="margin-bottom:12px">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">
-                <i class="fas fa-wave-square" style="color:var(--accent)"></i> Forward LiDAR Sweep Radar
-              </div>
-              <div class="amr-feed" style="border-radius:var(--radius-sm)">
-                <div class="lidar-view" style="aspect-ratio: 16/7">
-                  ${!isFailed ? '<div class="lidar-sweep"></div>' : '<div style="color:var(--danger);font-size:11px;padding:20px;text-align:center">LiDAR Offline — Vehicle Faulted</div>'}
+              <!-- DIRECT MOVEMENT CONTROL ACTIONS -->
+              <div style="margin-bottom:12px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">
+                  <i class="fas fa-gamepad" style="color:var(--accent)"></i> Vehicle Movement Controls
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <button class="btn" data-amr-act="send_charge" data-amr-id="${a.id}">
+                    <i class="fas fa-bolt" style="color:var(--accent)"></i> Dispatch Charge
+                  </button>
+                  <button class="btn" data-amr-act="force_reroute" data-amr-id="${a.id}">
+                    <i class="fas fa-route" style="color:var(--info)"></i> Force Reroute
+                  </button>
+                  <button class="btn" id="btnInspHold" data-amr-act="toggle_hold" data-amr-id="${a.id}" ${isFailed ? 'disabled' : ''}>
+                    <i class="fas fa-${isStopped ? 'play' : 'pause'}" style="color:var(--warning)"></i> ${isStopped ? 'Resume' : 'Hold Position'}
+                  </button>
+                  <button class="btn ${isFailed ? 'primary' : 'danger'}" id="btnInspFault" data-amr-act="toggle_fault" data-amr-id="${a.id}">
+                    <i class="fas fa-${isFailed ? 'wrench' : 'power-off'}"></i> ${isFailed ? 'Clear Fault' : 'E-Stop Fault'}
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <!-- DETAILED EDGE TELEMETRY READOUT -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-              <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
-                <span class="muted">Battery Voltage</span><br>
-                <span class="mono" style="font-weight:700">${num(socToVolt(soc), 1)} V (${num(soc)}%)</span>
+              <!-- DIRECT POINT-TO-POINT DISPATCH -->
+              <div style="margin-bottom:12px;padding:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm)">
+                <div style="font-size:10.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                  <i class="fas fa-paper-plane" style="color:var(--accent)"></i> Direct Node Dispatch
+                </div>
+                <div style="display:flex;gap:6px">
+                  <select id="dispatchDestSelect" class="mono" style="flex:1;padding:4px 8px;font-size:11px;border:1px solid var(--border-color);border-radius:3px;background:var(--bg-panel);color:var(--text-primary)">
+                    <option value="STOR-A1">STOR-A1 (Storage Rack A1)</option>
+                    <option value="STOR-A2">STOR-A2 (Storage Rack A2)</option>
+                    <option value="STOR-B1">STOR-B1 (Storage Rack B1)</option>
+                    <option value="STOR-B2">STOR-B2 (Storage Rack B2)</option>
+                    <option value="PICK-1">PICK-1 (Pick Station 1)</option>
+                    <option value="PICK-2">PICK-2 (Pick Station 2)</option>
+                    <option value="PACK-1">PACK-1 (Pack Line 1)</option>
+                    <option value="PACK-2">PACK-2 (Pack Line 2)</option>
+                    <option value="DROP-1">DROP-1 (Dispatch Bay 1)</option>
+                    <option value="DROP-2">DROP-2 (Dispatch Bay 2)</option>
+                    <option value="CHRG-1">CHRG-1 (Charge Dock 1)</option>
+                    <option value="CHRG-2">CHRG-2 (Charge Dock 2)</option>
+                  </select>
+                  <button class="btn primary" data-amr-act="dispatch_node" data-amr-id="${a.id}" style="padding:4px 10px">Dispatch</button>
+                </div>
               </div>
-              <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
-                <span class="muted">Speed / Heading</span><br>
-                <span class="mono" style="font-weight:700">${num(a.pose.velocity, 2)} m/s · ${num(a.pose.headingDeg, 0)}°</span>
-              </div>
-              <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
-                <span class="muted">Payload Load</span><br>
-                <span class="mono" style="font-weight:700">${a.payload.isLoaded ? a.payload.currentLoadKg + ' kg' : 'Empty'}</span>
-              </div>
-              <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
-                <span class="muted">Nearby P2P Peers</span><br>
-                <span class="mono" style="font-weight:700">${a.coordination.nearbyPeers.length} active</span>
-              </div>
-            </div>
 
-            <div style="margin-top:8px;font-size:10.5px;color:var(--text-muted);background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
-              <span class="muted">Task Assignment</span><br>
-              <span class="mono accent-text">${esc(taskStr)}</span>
-            </div>`;
+              <!-- LIDAR SWEEP VISUALIZER -->
+              <div style="margin-bottom:12px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">
+                  <i class="fas fa-wave-square" style="color:var(--accent)"></i> Forward LiDAR Sweep Radar
+                </div>
+                <div class="amr-feed" style="border-radius:var(--radius-sm)">
+                  <div class="lidar-view" id="inspLidarBox" style="aspect-ratio: 16/7">
+                    ${!isFailed ? '<div class="lidar-sweep"></div>' : '<div style="color:var(--danger);font-size:11px;padding:20px;text-align:center">LiDAR Offline — Vehicle Faulted</div>'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- DETAILED EDGE TELEMETRY READOUT -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+                <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                      <span class="muted">Battery Telemetry</span><br>
+                      <span class="mono" id="inspVolt" style="font-weight:700">${num(socToVolt(soc), 1)} V</span>
+                    </div>
+                    <span id="inspBatteryWrap">${batteryHTML(soc, a.battery?.isCharging || a.status === 'charging', 'lg')}</span>
+                  </div>
+                </div>
+                <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
+                  <span class="muted">Speed / Heading</span><br>
+                  <span class="mono" id="inspSpeed" style="font-weight:700">${num(a.pose.velocity, 2)} m/s · ${num(a.pose.headingDeg, 0)}°</span>
+                </div>
+                <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
+                  <span class="muted">Payload Load</span><br>
+                  <div style="margin-top:3px" id="inspPayloadWrap">${payloadHTML(a.payload)}</div>
+                </div>
+                <div style="background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
+                  <span class="muted">Nearby P2P Peers</span><br>
+                  <span class="mono" id="inspPeers" style="font-weight:700">${a.coordination.nearbyPeers.length} active</span>
+                </div>
+              </div>
+
+              <div style="margin-top:8px;font-size:10.5px;color:var(--text-muted);background:var(--bg-secondary);padding:6px 8px;border-radius:4px;border:1px solid var(--border-color)">
+                <span class="muted">Task Assignment</span><br>
+                <span class="mono accent-text" id="inspTask">${esc(taskStr)}</span>
+              </div>`;
+          } else {
+            // Update targeted dynamic fields on every sim tick without destroying the DOM / buttons
+            const statusPill = inspector.querySelector('#inspStatusPill');
+            if (statusPill) {
+              statusPill.className = 'status-pill ' + a.status;
+              statusPill.textContent = STATUS_LABEL[a.status] || a.status;
+            }
+
+            const btnHold = inspector.querySelector('#btnInspHold');
+            if (btnHold) {
+              btnHold.disabled = isFailed;
+              btnHold.innerHTML = `<i class="fas fa-${isStopped ? 'play' : 'pause'}" style="color:var(--warning)"></i> ${isStopped ? 'Resume' : 'Hold Position'}`;
+            }
+
+            const btnFault = inspector.querySelector('#btnInspFault');
+            if (btnFault) {
+              btnFault.className = `btn ${isFailed ? 'primary' : 'danger'}`;
+              btnFault.innerHTML = `<i class="fas fa-${isFailed ? 'wrench' : 'power-off'}"></i> ${isFailed ? 'Clear Fault' : 'E-Stop Fault'}`;
+            }
+
+            const lidarBox = inspector.querySelector('#inspLidarBox');
+            if (lidarBox) {
+              lidarBox.innerHTML = !isFailed ? '<div class="lidar-sweep"></div>' : '<div style="color:var(--danger);font-size:11px;padding:20px;text-align:center">LiDAR Offline — Vehicle Faulted</div>';
+            }
+
+            const volt = inspector.querySelector('#inspVolt');
+            if (volt) volt.textContent = `${num(socToVolt(soc), 1)} V`;
+
+            const battWrap = inspector.querySelector('#inspBatteryWrap');
+            if (battWrap) battWrap.innerHTML = batteryHTML(soc, a.battery?.isCharging || a.status === 'charging', 'lg');
+
+            const speed = inspector.querySelector('#inspSpeed');
+            if (speed) speed.textContent = `${num(a.pose.velocity, 2)} m/s · ${num(a.pose.headingDeg, 0)}°`;
+
+            const payloadWrap = inspector.querySelector('#inspPayloadWrap');
+            if (payloadWrap) payloadWrap.innerHTML = payloadHTML(a.payload);
+
+            const peers = inspector.querySelector('#inspPeers');
+            if (peers) peers.textContent = `${a.coordination.nearbyPeers.length} active`;
+
+            const task = inspector.querySelector('#inspTask');
+            if (task) task.textContent = taskStr;
+          }
         }
       }
     };
@@ -1452,8 +1672,10 @@ export const killswitch = {
                   <span style="font-weight:800;font-family:var(--font-mono);font-size:13px;color:var(--text-primary)">${a.id}</span>
                   <span class="status-pill ${a.status}" style="font-size:8.5px">${STATUS_LABEL[a.status] || a.status}</span>
                 </div>
-                <div class="muted mono" style="font-size:10.5px;margin-top:2px">
-                  Node: <b>${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}</b> · Battery <b>${num(a.battery.soc)}%</b>
+                <div class="muted mono" style="font-size:10.5px;margin-top:2px;display:flex;align-items:center;gap:6px">
+                  <span>Node: <b>${a.pose.currentNodeId}${a.pose.targetNodeId ? ' → ' + a.pose.targetNodeId : ''}</b></span>
+                  <span>·</span>
+                  ${batteryHTML(a.battery.soc, a.battery?.isCharging || a.status === 'charging', 'sm')}
                 </div>
               </div>
               <div style="display:flex;gap:6px;align-items:center">

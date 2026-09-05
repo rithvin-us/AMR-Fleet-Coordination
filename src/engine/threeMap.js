@@ -25,10 +25,10 @@ export class ThreeWarehouseMap {
     this.width = this.container.clientWidth || 800;
     this.height = this.container.clientHeight || 500;
 
-    // Scene & Renderer Setup — night control-room aesthetic
+    // Scene & Renderer Setup — clean light control-room aesthetic
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0e14);
-    this.scene.fog = new THREE.FogExp2(0x0a0e14, 0.0016);
+    this.scene.background = new THREE.Color(0xf8fafc);
+    this.scene.fog = new THREE.FogExp2(0xf8fafc, 0.0012);
 
     this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 1, 1000);
     this.camera.position.set(0, 110, 115);
@@ -106,15 +106,14 @@ export class ThreeWarehouseMap {
   }
 
   initLighting() {
-    // Cool, low ambient for a night facility; a strong key light keeps forms
-    // readable and casts the shadows, with an accent-blue fill for atmosphere.
-    const ambient = new THREE.AmbientLight(0x9fb4d0, 1.1);
+    // Bright, clean ambient and directional lighting for light SCADA operations
+    const ambient = new THREE.AmbientLight(0xffffff, 1.3);
     this.scene.add(ambient);
 
-    const hemi = new THREE.HemisphereLight(0x2f4a6b, 0x05070b, 0.8);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xd1d5db, 0.8);
     this.scene.add(hemi);
 
-    const dirLight = new THREE.DirectionalLight(0xdfeaff, 1.5);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(60, 130, 70);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -127,22 +126,22 @@ export class ThreeWarehouseMap {
     dirLight.shadow.camera.bottom = -80;
     this.scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x2f81f7, 0.5);
+    const fillLight = new THREE.DirectionalLight(0x0969da, 0.3);
     fillLight.position.set(-80, 60, -70);
     this.scene.add(fillLight);
 
-    const centerPoint = new THREE.PointLight(0x2f81f7, 0.9, 180);
+    const centerPoint = new THREE.PointLight(0x0969da, 0.4, 180);
     centerPoint.position.set(0, 25, 0);
     this.scene.add(centerPoint);
   }
 
   buildFloor() {
-    // Large dark polished-epoxy floor plane (240x180)
+    // Clean light epoxy floor plane (240x180)
     const floorGeo = new THREE.PlaneGeometry(240, 180);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x121924,
-      roughness: 0.45,
-      metalness: 0.35,
+      color: 0xf1f5f9,
+      roughness: 0.4,
+      metalness: 0.05,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -150,24 +149,24 @@ export class ThreeWarehouseMap {
     floor.receiveShadow = true;
     this.floorGroup.add(floor);
 
-    // Outdoor asphalt loading apron (night)
+    // Outdoor apron (light)
     const asphaltGeo = new THREE.PlaneGeometry(240, 60);
-    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x0c1017, roughness: 0.9, metalness: 0.1 });
+    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.7, metalness: 0.05 });
     const apron = new THREE.Mesh(asphaltGeo, asphaltMat);
     apron.rotation.x = -Math.PI / 2;
     apron.position.set(0, -0.12, 90);
     this.floorGroup.add(apron);
 
-    // Grid overlay — accent major lines on a dark minor grid
-    const gridHelper = new THREE.GridHelper(240, 48, 0x2f81f7, 0x1c2531);
+    // Grid overlay — clean crisp grid lines
+    const gridHelper = new THREE.GridHelper(240, 48, 0x0969da, 0xcbd5e1);
     gridHelper.position.y = 0.01;
-    gridHelper.material.opacity = 0.35;
+    gridHelper.material.opacity = 0.45;
     gridHelper.material.transparent = true;
     this.floorGroup.add(gridHelper);
 
-    // Outer facility perimeter line (glowing accent wireframe)
+    // Outer facility perimeter line
     const frameGeo = new THREE.BoxGeometry(166, 1.4, 106);
-    const frameMat = new THREE.MeshBasicMaterial({ color: 0x2f81f7, wireframe: true });
+    const frameMat = new THREE.MeshBasicMaterial({ color: 0x0969da, wireframe: true });
     const frame = new THREE.Mesh(frameGeo, frameMat);
     frame.position.set(0, 0.7, 0);
     this.floorGroup.add(frame);
@@ -179,8 +178,8 @@ export class ThreeWarehouseMap {
   buildWarehouseBuildingEnclosure() {
     this.buildingGroup.clear();
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a2230, metalness: 0.35, roughness: 0.65 });
-    const trimMat = new THREE.MeshBasicMaterial({ color: 0x2f81f7 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.1, roughness: 0.7 });
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x0969da });
 
     // Rear Facility Wall (Back Z = -53)
     const rearWallGeo = new THREE.BoxGeometry(168, 18, 1.5);
@@ -472,7 +471,7 @@ export class ThreeWarehouseMap {
     pallet.visible = false;
     forkCarriage.add(pallet);
 
-    const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 1.2), new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.3 }));
+    const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 1.2), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.25, metalness: 0.15 }));
     cargo.position.set(0, 0.65, 0.75);
     cargo.visible = false;
     forkCarriage.add(cargo);
@@ -643,7 +642,14 @@ export class ThreeWarehouseMap {
         else if (amr.status === 'moving') statusTxt = amr.payload.isLoaded ? 'DELIVERING' : 'EN ROUTE';
         else if (amr.status === 'charging') statusTxt = 'CHARGING';
         else statusTxt = amr.status.toUpperCase().replace('_', ' ');
-        badge.innerHTML = `<span class="vbadge-id">${amr.id}</span><span class="vbadge-status">${statusTxt}</span>`;
+
+        const isLoaded = !!amr.payload?.isLoaded;
+        const loadKg = amr.payload?.currentLoadKg || 0;
+        const payloadTag = isLoaded
+          ? `<span class="vbadge-payload loaded"><i class="fas fa-box"></i> ${loadKg}kg</span>`
+          : `<span class="vbadge-payload empty">EMPTY</span>`;
+
+        badge.innerHTML = `<span class="vbadge-id">${amr.id}</span>${payloadTag}<span class="vbadge-status">${statusTxt}</span>`;
       } else {
         badge.style.display = 'none';
       }

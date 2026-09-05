@@ -9,38 +9,38 @@
    1. DESIGN TOKENS & SYSTEM VARIABLES
    ----------------------------------------------------------------------------- */
 :root {
-  /* Brand & Industrial Signal Palette — Night SCADA (dark, high-contrast) */
-  --accent: #2f81f7;            /* Precision SCADA Blue (brightened for dark) */
-  --accent-hover: #58a6ff;
-  --accent-light: rgba(47, 129, 247, 0.14);
-  --navy: #010409;
-  --emerald: #3fb950;
-  --cyan: #38e0ff;              /* signal cyan for pathways / mesh */
+  /* Brand & Industrial Signal Palette — Clean Light SCADA */
+  --accent: #0969da;            /* Precision SCADA Blue */
+  --accent-hover: #0353b4;
+  --accent-light: rgba(9, 105, 218, 0.08);
+  --navy: #1f2328;
+  --emerald: #1a7f37;
+  --cyan: #0284c7;              /* signal cyan for pathways / mesh */
 
-  /* Surfaces & Neutral Tones (Night Operations Mode) */
-  --bg-primary: #0a0e14;        /* deep control-room canvas */
-  --bg-secondary: #131a24;      /* elevated surface / topbar */
-  --bg-card: #131a24;
-  --bg-card-hover: #1b2430;
-  --bg-panel: #0e141d;          /* inset panel, darker than card */
+  /* Surfaces & Neutral Tones (Light Operations Mode) */
+  --bg-primary: #f6f8fa;        /* clean light control-room canvas */
+  --bg-secondary: #ffffff;      /* elevated white surface / topbar / cards */
+  --bg-card: #ffffff;
+  --bg-card-hover: #f3f4f6;
+  --bg-panel: #f8fafc;          /* subtle inset panel surface */
 
-  --border-color: #263140;
-  --border-subtle: #1c2531;
-  --border-focus: #2f81f7;
+  --border-color: #d0d7de;      /* crisp clean border */
+  --border-subtle: #e6ebf1;
+  --border-focus: #0969da;
 
-  --text-primary: #e6edf3;
-  --text-secondary: #b3c0cf;
-  --text-muted: #8b98a8;
+  --text-primary: #1f2328;      /* dark charcoal text */
+  --text-secondary: #424a53;    /* slate secondary text */
+  --text-muted: #656d76;        /* muted grey text */
 
-  /* SCADA Telemetry Status Colors (dark-tuned) */
-  --success: #3fb950;
-  --success-bg: rgba(63, 185, 80, 0.14);
-  --warning: #d29922;
-  --warning-bg: rgba(210, 153, 34, 0.14);
-  --danger: #f85149;
-  --danger-bg: rgba(248, 81, 73, 0.14);
-  --info: #58a6ff;
-  --info-bg: rgba(88, 166, 255, 0.14);
+  /* SCADA Telemetry Status Colors (light-tuned) */
+  --success: #1a7f37;
+  --success-bg: rgba(26, 127, 55, 0.1);
+  --warning: #9a6700;
+  --warning-bg: rgba(154, 103, 0, 0.1);
+  --danger: #cf222e;
+  --danger-bg: rgba(207, 34, 46, 0.1);
+  --info: #0969da;
+  --info-bg: rgba(9, 105, 218, 0.1);
 
   /* Geometry & Spacing System */
   --sidebar-width: 240px;
@@ -652,6 +652,75 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   filter: drop-shadow(-2px 4px 5px rgba(245, 158, 11, 0.35));
 }
 
+/* Node & Edge Number Badges for Map Canvas */
+.wh-edge-badge-bg {
+  fill: var(--bg-secondary);
+  stroke: var(--border-color);
+  stroke-width: 0.3px;
+  rx: 0.5px;
+}
+.wh-edge-num-text {
+  font-family: var(--font-mono);
+  font-size: 1.05px;
+  font-weight: 800;
+  fill: var(--accent);
+  pointer-events: none;
+}
+
+.wh-node-badge-bg {
+  fill: var(--navy);
+  stroke: var(--border-color);
+  stroke-width: 0.25px;
+  rx: 0.5px;
+}
+.wh-node-num-text {
+  font-family: var(--font-mono);
+  font-size: 1.05px;
+  font-weight: 800;
+  fill: #ffffff;
+  pointer-events: none;
+}
+
+.wh-hidden-badge {
+  display: none !important;
+}
+
+/* Map Customizer Toolbar */
+.graph-customizer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+.gct-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gct-label {
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gct-input {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  width: 50px;
+}
+
 .warehouse-wrap.iso-3d .wh-amr {
   filter: drop-shadow(-4px 6px 8px rgba(15, 23, 42, 0.3));
 }
@@ -839,10 +908,198 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 .progress-fill.amber { background: var(--warning); }
 .progress-fill.red { background: var(--danger); }
 
-.battery { display: flex; align-items: center; gap: 6px; }
-.battery-shell { position: relative; width: 36px; height: 14px; border: 1.5px solid var(--text-muted); border-radius: 3px; padding: 1px; background: var(--bg-panel); }
-.battery-shell::after { content: ''; position: absolute; right: -4px; top: 3px; width: 2px; height: 5px; background: var(--text-muted); border-radius: 0 1px 1px 0; }
-.battery-level { height: 100%; border-radius: 1px; transition: width 0.4s linear; }
+/* -----------------------------------------------------------------------------
+   MOBILE BATTERY INDICATOR SYSTEM & FLEET MONITOR WIDGET
+   ----------------------------------------------------------------------------- */
+.battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  user-select: none;
+  vertical-align: middle;
+}
+
+/* Mobile Battery Capsule Shell */
+.battery-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 5px;
+  padding: 1.5px;
+  transition: all 0.3s ease;
+}
+
+/* Metallic/Glass Battery Tip (+) Cap */
+.battery-shell::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Battery Fill Level */
+.battery-level {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Lightning Bolt overlay for Charging state */
+.battery-bolt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  animation: battery-bolt-pulse 1.2s ease-in-out infinite alternate;
+  z-index: 2;
+}
+
+/* Battery Size Variations */
+.battery-sm { gap: 5px; }
+.battery-sm .battery-shell { width: 30px; height: 13px; border-width: 1px; border-radius: 3.5px; padding: 1px; }
+.battery-sm .battery-shell::after { right: -3px; width: 2px; height: 5px; }
+.battery-sm .battery-pct { font-size: 10px; font-weight: 600; }
+.battery-sm .battery-bolt { font-size: 7px; }
+
+.battery-md { gap: 7px; }
+.battery-md .battery-shell { width: 42px; height: 17px; border-width: 1.5px; border-radius: 4.5px; padding: 1.5px; }
+.battery-md .battery-pct { font-size: 11.5px; font-weight: 700; }
+.battery-md .battery-bolt { font-size: 9px; }
+
+.battery-lg { gap: 9px; }
+.battery-lg .battery-shell { width: 56px; height: 22px; border-width: 2px; border-radius: 6px; padding: 2px; }
+.battery-lg .battery-shell::after { right: -5px; width: 3.5px; height: 9px; }
+.battery-lg .battery-pct { font-size: 13px; font-weight: 800; }
+.battery-lg .battery-bolt { font-size: 11px; }
+
+/* Charging & Critical Animations */
+.battery.is-charging .battery-shell {
+  border-color: var(--success);
+  box-shadow: 0 0 8px rgba(46, 160, 67, 0.4), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.battery.is-charging .battery-level {
+  animation: battery-charging-shimmer 2s linear infinite;
+}
+
+.battery.is-critical .battery-shell {
+  border-color: var(--danger);
+  box-shadow: 0 0 10px rgba(207, 34, 46, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  animation: battery-critical-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes battery-bolt-pulse {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; filter: drop-shadow(0 0 4px #3fb950); }
+}
+
+@keyframes battery-charging-shimmer {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes battery-critical-pulse {
+  0% { box-shadow: 0 0 4px rgba(207, 34, 46, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4); }
+  100% { box-shadow: 0 0 12px rgba(207, 34, 46, 0.7), inset 0 1px 2px rgba(0, 0, 0, 0.4); }
+}
+
+/* Mobile Fleet Battery Monitor Card Layout (`#vehStatusList`) */
+.fleet-battery-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.fbs-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.fbs-stat strong {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.mobile-battery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.mobile-battery-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.mobile-battery-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.mobile-battery-card.critical {
+  border-color: rgba(207, 34, 46, 0.35);
+  background: rgba(207, 34, 46, 0.05);
+}
+.mobile-battery-card.charging {
+  border-color: rgba(46, 160, 67, 0.35);
+  background: rgba(46, 160, 67, 0.04);
+}
+
+.mbc-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mbc-id-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mbc-id {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--accent);
+}
+.mbc-sub {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mbc-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 /* -----------------------------------------------------------------------------
    12. P2P MESH & TOKEN WIDGETS
@@ -1507,133 +1764,133 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
   background: linear-gradient(90deg, #0284c7, #38bdf8);
 }
 
-/* NIGHT SCADA CONSOLE THEME */
+/* LIGHT SCADA CONSOLE THEME */
 .scada-console-wrapper {
   background: var(--bg-primary) !important;
   margin: -16px -20px;
   padding: 16px 20px;
   min-height: calc(100vh - var(--topbar-height));
-  color: #e6edf3 !important;
+  color: var(--text-primary) !important;
 }
 
 .scada-console-wrapper .card,
 .scada-dashboard-grid .card {
   background: var(--bg-secondary) !important;
-  border: 1px solid #263140 !important;
-  color: #e6edf3 !important;
-  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.12) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow) !important;
 }
 
 .scada-console-wrapper .card-header,
 .scada-dashboard-grid .card-header {
-  border-bottom: 1px solid #263140 !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 .scada-console-wrapper .card-title,
 .scada-dashboard-grid .card-title {
-  color: #e6edf3 !important;
+  color: var(--text-primary) !important;
   font-family: var(--font-display) !important;
 }
 
 .scada-console-wrapper .card-title i,
 .scada-dashboard-grid .card-title i {
-  color: #2f81f7 !important;
+  color: var(--accent) !important;
 }
 
 .scada-console-wrapper .warehouse-wrap {
   background: var(--bg-secondary) !important;
-  border-color: #263140 !important;
+  border-color: var(--border-color) !important;
 }
 
 .scada-console-wrapper .wh-node-label {
-  fill: #e6edf3 !important;
+  fill: var(--text-primary) !important;
 }
 
 .scada-console-wrapper .wh-edge {
-  stroke: #263140 !important;
+  stroke: var(--border-color) !important;
 }
 
 .scada-console-wrapper .wh-edge.busy {
-  stroke: #2f81f7 !important;
+  stroke: var(--accent) !important;
 }
 
 .scada-console-wrapper .wh-edge.blocked {
-  stroke: #cf222e !important;
+  stroke: var(--danger) !important;
 }
 
 .scada-console-wrapper .wh-facility-zone text {
-  fill: #2f81f7 !important;
+  fill: var(--accent) !important;
 }
 
 .scada-console-wrapper .wh-scale-bar line {
-  stroke: #8b98a8 !important;
+  stroke: var(--text-muted) !important;
 }
 
 .scada-console-wrapper .wh-scale-bar text {
-  fill: #8b98a8 !important;
+  fill: var(--text-muted) !important;
 }
 
 .scada-metric-tile {
-  background: #131a24 !important;
-  border: 1px solid #263140 !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .scada-metric-lbl {
-  color: #8b98a8 !important;
+  color: var(--text-muted) !important;
 }
 
 .active-missions-table th {
-  color: #8b98a8 !important;
-  border-bottom: 1px solid #263140 !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 .active-missions-table td {
-  color: #e6edf3 !important;
-  border-bottom: 1px solid #1c2531 !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
 }
 
 .scada-progress-bar {
-  background: #1c2531 !important;
+  background: var(--border-subtle) !important;
 }
 
 /* Button & Pill overrides in SCADA Console */
 .scada-console-wrapper .btn {
-  background: #131a24 !important;
-  border: 1px solid #263140 !important;
-  color: #e6edf3 !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 .scada-console-wrapper .btn:hover {
-  background: #1b2430 !important;
-  border-color: #2f81f7 !important;
-  color: #2f81f7 !important;
+  background: var(--bg-card-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
 }
 
 .scada-console-wrapper .btn.primary {
-  background: #2f81f7 !important;
-  border-color: #2f81f7 !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
   color: #ffffff !important;
 }
 
 .scada-console-wrapper .speed-group {
-  background: #131a24 !important;
-  border: 1px solid #263140 !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .scada-console-wrapper .speed-group button {
-  color: #8b98a8 !important;
+  color: var(--text-muted) !important;
 }
 
 .scada-console-wrapper .speed-group button.active,
 .scada-console-wrapper .speed-group button:hover {
-  background: #2f81f7 !important;
+  background: var(--accent) !important;
   color: #ffffff !important;
 }
 
 .scada-console-wrapper .telemetry-amr-card {
-  background: #131a24 !important;
-  border-color: #263140 !important;
-  color: #e6edf3 !important;
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 
@@ -1673,3 +1930,68 @@ svg.spin, .fa-spin svg { animation: icon-spin 0.9s linear infinite; transform-or
 .scada-vbadge.vbadge-agv .vbadge-id { color: #58a6ff; }
 .scada-vbadge.vbadge-fl { border-color: rgba(210, 153, 34, 0.55); }
 .scada-vbadge.vbadge-fl .vbadge-id { color: #d29922; }
+
+/* High Visibility Payload Badge System */
+.payload-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  user-select: none;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.payload-badge.loaded {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  font-weight: 700;
+}
+.payload-badge.loaded i {
+  color: #f59e0b;
+  font-size: 11.5px;
+  animation: payload-loaded-bounce 2s ease-in-out infinite alternate;
+}
+.payload-badge.loaded strong {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.payload-badge.empty {
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-weight: 500;
+}
+
+@keyframes payload-loaded-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1.5px); }
+}
+
+/* SCADA 3D Vehicle Badge Payload Indicator */
+.vbadge-payload {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+}
+.vbadge-payload.loaded {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+.vbadge-payload.empty {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
